@@ -10,5 +10,7 @@ namespace PulsePeak.DAL.RepositoryAbstraction
         // TEntity Add(TEntity entity);
         // bool Update(TEntity entity);
         // and so on ...
+
+        TEntity Add(TEntity entity);
     }
 }
