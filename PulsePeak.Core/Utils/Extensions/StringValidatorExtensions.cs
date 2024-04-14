@@ -51,8 +51,8 @@ namespace PulsePeak.Core.Utils.Extensions
             errorMessage = string.Empty;
             string pattern = @"^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$";
 
-            if (!Regex.IsMatch(username, pattern)) {
-                errorMessage = "The username does not meet the specified criteria.";
+            if (!Regex.IsMatch(username, pattern) || string.IsNullOrEmpty(username)) {
+                errorMessage = $"The username does not meet the specified criteria.";
                 return false;
             }
             return true;
@@ -81,6 +81,11 @@ namespace PulsePeak.Core.Utils.Extensions
             string areaCodePhoneNumber = @"^ *\(?\.?\-? *\d{3}\)? *\.?\-? *\d{3} *\(?\.?\-? *\d{3}$";
             errorMessage = string.Empty;
 
+            if (string.IsNullOrEmpty(phoneNumber)) {
+                errorMessage = "The phone number cannot be null or an empty string.";
+                return false;
+            }
+
             if (!Regex.IsMatch(phoneNumber, intCodePhoneNumber) && !Regex.IsMatch(phoneNumber, areaCodePhoneNumber)) {
                 errorMessage = "The phone number is not a valid US or Canada phone number.";
                 return false;
@@ -108,8 +113,12 @@ namespace PulsePeak.Core.Utils.Extensions
             string subEmailPattern = @"^[a-zA-Z0-9#!%$'&+*\/=?^_`.{|}~-]{0,61}[a-zA-Z0-9#!%$'&+*\/=?^_`.{|}~](@)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+\.[a-zA-Z]{2,}$";
             errorMessage = string.Empty;
 
+            if (string.IsNullOrEmpty(emailAddress)) {
+                errorMessage = "The email address cannot be null or an empty string.";
+                return false;
+            }
             if (!Regex.IsMatch(emailAddress, simpleEmailPattern) && !Regex.IsMatch(emailAddress, subEmailPattern)) {
-                errorMessage = "The email address is not a valid email address.";
+                errorMessage = "The email address is not valid";
                 return false;
             }
             return true;
@@ -137,7 +146,7 @@ namespace PulsePeak.Core.Utils.Extensions
             string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
             errorMessage = string.Empty;
 
-            if (!Regex.IsMatch(password, pattern)) {
+            if (!Regex.IsMatch(password, pattern) || string.IsNullOrEmpty(password)) {
                 errorMessage = "The password does not meet the requirements.";
                 return false;
             }

@@ -8,5 +8,10 @@ namespace PulsePeak.DAL.RepositoryImplementation
         protected PulsePeakDbContext DbContext { get; set; }
         public RepositoryBase(PulsePeakDbContext dbContext) => DbContext = dbContext;
 
+        public TEntity Add(TEntity entity)
+        {
+            DbContext.Set<TEntity>().Add(entity);
+            return entity;
+        }
     }
 }

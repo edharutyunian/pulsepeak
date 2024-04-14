@@ -2,7 +2,7 @@
 using PulsePeak.DAL.RepositoryContracts;
 using PulsePeak.DAL.RepositoryImplementation;
 
-namespace PulsePeak.DAL.Repositories
+namespace PulsePeak.DAL.Repositories.UserRepositories
 {
     public class UserRepository : RepositoryBase<UserBaseEnttity>, IUserRepository
     {

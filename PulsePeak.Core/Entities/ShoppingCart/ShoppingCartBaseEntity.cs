@@ -7,7 +7,7 @@ namespace PulsePeak.Core.Entities.ShoppingCart
     {
         public int TotalItemCount { get; set; } // update upon adding an IProduct to thee ShoppingCart
         public Dictionary<IProduct, bool> Products { get; set; } // bool represents if the product is selected for checkout
-        public Customer Customer { get; set; } 
+        public CustomerEntity Customer { get; set; } 
 
         // anything else?
     }

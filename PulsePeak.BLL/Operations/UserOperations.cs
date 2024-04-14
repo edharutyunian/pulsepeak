@@ -1,26 +1,30 @@
-﻿using PulsePeak.Core.BLLContracts;
+﻿using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using PulsePeak.Core.BLLContracts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Exceptions;
-using PulsePeak.Core.RepositoryAbstraction;
 using PulsePeak.Core.Utils.Extensions;
 using PulsePeak.Core.Utils.Validators;
 using PulsePeak.Core.ViewModels.AuthModels;
 using PulsePeak.Core.ViewModels.UserViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
+using PulsePeak.DAL.RepositoryAbstraction;
 
 namespace PulsePeak.BLL.Operations
 {
     public class UserOperations : IUserOperations
     {
         private readonly IRepositoryHandler repositoryHandler;
+        private readonly IMapper mapper;
         // need to add something like TokenKey and TokenParameters or so for the Auth
         private string errorMessage = string.Empty;
 
-        public UserOperations(IRepositoryHandler repositoryHandler)
+        public UserOperations(IServiceProvider serviceProvider)
         {
-            this.repositoryHandler = repositoryHandler;
+            this.repositoryHandler = serviceProvider.GetRequiredService<IRepositoryHandler>();
+            this.mapper = serviceProvider.GetRequiredService<IMapper>();
         }
 
         public Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest)
@@ -29,9 +33,20 @@ namespace PulsePeak.BLL.Operations
             throw new NotImplementedException();
         }
 
-        public Task<UserBaseEnttity> CreateUser(UserModel userModel)
+        public async Task<UserBaseEnttity> CreateUser(UserModel userModel)
         {
-            throw new NotImplementedException();
+            if (!await IsValidUser(userModel)) {
+                throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
+            }
+
+            try {
+                var user = mapper.Map<UserBaseEnttity>(userModel);
+                repositoryHandler.UserRepository.Add(user);
+                return user;
+            }
+            catch (RegistrationException e) {
+                throw new RegistrationException(errorMessage, e);
+            }
         }
 
         public async Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest)
@@ -57,22 +72,36 @@ namespace PulsePeak.BLL.Operations
             // maybe using(var something = this.repositoryHandler.CreateTransaction() { }
             // then
             try {
-                var user = await ((IUserOperations) this).CreateUser(customerRegistrationRequest.Customer.User);
+                // not sure on this tbh
+                var user = await this.CreateUser(customerRegistrationRequest.Customer.User);
                 user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
                 user.Type = UserType.CUSTOMER;
 
-                var customer = new Customer {
+                var customer = new CustomerEntity {
+                    UsertId = user.Id,
+                    User = user,
                     FirstName = customerRegistrationRequest.Customer.FirstName,
                     LastName = customerRegistrationRequest.Customer.LastName,
-                    UserName = customerRegistrationRequest.Customer.User.UserName,
-                    Password = customerRegistrationRequest.Customer.User.Password,
                     BirthDate = customerRegistrationRequest.Customer.BirthDate,
                 };
 
                 // maybe add to the repositoryHandler with .Add() method?
+                repositoryHandler.UserRepository.Add(user);
 
-                // this is used to avoid errors :
-                return new CustomerRegistrationResponse();
+                var mappedCustomer = mapper.Map<CustomerModel>(customer);
+
+                // TODO: Get the token:
+                // Alex -- this is something for you
+                var token = await Authentication(new AuthenticationRequestModel {
+                    UserName = customerRegistrationRequest.Customer.User.UserName,
+                    Password = customerRegistrationRequest.Customer.User.Password
+                });
+
+                return new CustomerRegistrationResponse {
+                    Customer = mappedCustomer,
+                    Token = token.Token,
+                    RefreshToken = token.RefreshToken
+                };
 
             }
             catch (RegistrationException ex) {
@@ -109,6 +138,29 @@ namespace PulsePeak.BLL.Operations
         public Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest)
         {
             throw new NotImplementedException();
+        }
+
+
+
+        private async Task<bool> IsValidUser(UserModel user)
+        {
+            if (!user.UserName.IsValidUsername(out errorMessage)) {
+                return false;
+            }
+
+            // TODO: Check if there is a user with the same username
+            // maybe something like await repositoryHandler.IfAny() ??
+
+            if (!user.Password.IsValidPassword(out errorMessage)) {
+                return false;
+            }
+            if (!user.EmailAddress.IsValidEmailAddress(out errorMessage)) {
+                return false;
+            }
+            if (!user.PhoneNumber.IsValidPhoneNumber(out errorMessage)) {
+                return false;
+            }
+            return true;
         }
     }
 }
