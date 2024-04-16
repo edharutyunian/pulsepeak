@@ -10,6 +10,8 @@ namespace PulsePeak.Core.Entities.Categories
         public byte[] Image { get; set; } // optional 
         public DateTime CreatedOn { get; set; } // defaults upon Category creation {DateTime.Now}
         public DateTime ModifiedOn { get; set; } // updates upon last modification 
+
+        public long CreatedById { get; set; }
         public MerchantEntity CreatedBy { get; set; } // required -- tied to the MerchantEntity's account 
     }
 }

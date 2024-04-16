@@ -1,4 +1,5 @@
-﻿using PulsePeak.DAL.RepositoryContracts;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using PulsePeak.DAL.RepositoryContracts;
 
 namespace PulsePeak.DAL.RepositoryAbstraction
 {
@@ -10,5 +11,9 @@ namespace PulsePeak.DAL.RepositoryAbstraction
 
         IUserRepository UserRepository { get; }
 
+        int Comlete();
+        Task<int> ComleteAsync();
+        IDbContextTransaction CreateTransaction();
+        Task<IDbContextTransaction> CreateTransactionAsync();
     }
 }

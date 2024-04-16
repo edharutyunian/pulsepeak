@@ -22,7 +22,7 @@ namespace PulsePeak.Core.Utils.Extensions
             errorMessage = string.Empty;
             string pattern = @"^(?=[A-Za-z])((?:[A-Za-z])|(?:[A-Za-z]['-.](?=[A-Za-z]))|(?: (?=[A-Za-z])))*$";
 
-            if (!Regex.IsMatch(name, pattern, RegexOptions.IgnoreCase)) {
+            if (!Regex.IsMatch(name, pattern, RegexOptions.IgnoreCase) || string.IsNullOrEmpty(name)) {
                 errorMessage = "The name must start with a letter and can only include letters, spaces, apostrophes, dashes, and periods.";
                 return false;
             }
