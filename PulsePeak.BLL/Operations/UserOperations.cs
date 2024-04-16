@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PulsePeak.Core.BLLContracts;
+using PulsePeak.Core.Entities.Contacts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Exceptions;
@@ -35,13 +37,27 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<UserBaseEnttity> CreateUser(UserModel userModel)
         {
-            if (!await IsValidUser(userModel)) {
+            if (!await IsValidUserModel(userModel)) {
                 throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
             }
 
             try {
-                var user = mapper.Map<UserBaseEnttity>(userModel);
-                repositoryHandler.UserRepository.Add(user);
+                var user = this.mapper.Map<UserBaseEnttity>(userModel);
+                user.Contacts.Add(new ContactBaseEntity {
+                    UserId = user.Id,
+                    User = user,
+                    Active = true,
+                    Type = Core.Enums.ContactType.EmailAddress,
+                    Value = userModel.EmailAddress
+                });
+                user.Contacts.Add(new ContactBaseEntity {
+                    UserId = user.Id,
+                    User = user,
+                    Active = true,
+                    Type = Core.Enums.ContactType.PhoneNumber,
+                    Value = userModel.PhoneNumber
+                });
+                this.repositoryHandler.UserRepository.Add(user);
                 return user;
             }
             catch (RegistrationException e) {
@@ -55,101 +71,194 @@ namespace PulsePeak.BLL.Operations
             if (customerRegistrationRequest == null) {
                 throw new RegistrationException("Bad Request. "); // TODO: change the exception message
             }
-            if (!customerRegistrationRequest.Customer.FirstName.IsValidName(out errorMessage)
-                || string.IsNullOrEmpty(customerRegistrationRequest.Customer.FirstName)) {
-                throw new RegistrationException(errorMessage);
-            }
-            if (!customerRegistrationRequest.Customer.LastName.IsValidName(out errorMessage)
-                || string.IsNullOrEmpty(customerRegistrationRequest.Customer.LastName)) {
+            if (!customerRegistrationRequest.Customer.FirstName.IsValidName(out errorMessage) ||
+                !customerRegistrationRequest.Customer.LastName.IsValidName(out errorMessage)) {
                 throw new RegistrationException(errorMessage);
             }
             if (!Validator.IsValidBirthDate(customerRegistrationRequest.Customer.BirthDate, out errorMessage)) {
                 throw new RegistrationException(errorMessage);
             }
 
-            // TODO: Implement the stuff for creating the customer
-            // need something like CreateTransaction() or so for the IRepositoryhandler
-            // maybe using(var something = this.repositoryHandler.CreateTransaction() { }
-            // then
-            try {
-                // not sure on this tbh
-                var user = await this.CreateUser(customerRegistrationRequest.Customer.User);
-                user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
-                user.Type = UserType.CUSTOMER;
+            using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
+                try {
+                    // not sure on this tbh
+                    var user = await this.CreateUser(customerRegistrationRequest.Customer.User);
+                    user.Type = UserType.CUSTOMER;
+                    user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
+                    user.Active = true;
 
-                var customer = new CustomerEntity {
-                    UsertId = user.Id,
-                    User = user,
-                    FirstName = customerRegistrationRequest.Customer.FirstName,
-                    LastName = customerRegistrationRequest.Customer.LastName,
-                    BirthDate = customerRegistrationRequest.Customer.BirthDate,
-                };
+                    var customer = new CustomerEntity {
+                        UsertId = user.Id,
+                        User = user,
+                        FirstName = customerRegistrationRequest.Customer.FirstName,
+                        LastName = customerRegistrationRequest.Customer.LastName,
+                        BirthDate = customerRegistrationRequest.Customer.BirthDate,
+                    };
 
-                // maybe add to the repositoryHandler with .Add() method?
-                repositoryHandler.UserRepository.Add(user);
+                    // maybe add to the repositoryHandler with .Add() method?
+                    this.repositoryHandler.UserRepository.Add(user);
 
-                var mappedCustomer = mapper.Map<CustomerModel>(customer);
+                    // maybe complete transaction here?
+                    await this.repositoryHandler.ComleteAsync();
+                    var mappedCustomer = this.mapper.Map<CustomerModel>(customer);
 
-                // TODO: Get the token:
-                // Alex -- this is something for you
-                var token = await Authentication(new AuthenticationRequestModel {
-                    UserName = customerRegistrationRequest.Customer.User.UserName,
-                    Password = customerRegistrationRequest.Customer.User.Password
-                });
+                    // TODO: Get the token:
+                    // Alex -- this is something for you
+                    var token = await Authentication(new AuthenticationRequestModel {
+                        UserName = customerRegistrationRequest.Customer.User.UserName,
+                        Password = customerRegistrationRequest.Customer.User.Password
+                    });
 
-                return new CustomerRegistrationResponse {
-                    Customer = mappedCustomer,
-                    Token = token.Token,
-                    RefreshToken = token.RefreshToken
-                };
+                    return new CustomerRegistrationResponse {
+                        Customer = mappedCustomer,
+                        Token = token.Token,
+                        RefreshToken = token.RefreshToken
+                    };
 
+                }
+                catch (RegistrationException ex) {
+                    // maybe RollBack on the upper mentioned using(var something = this.repositoryHandler.CreateTransactionAsync()
+                    await transaction.RollbackAsync();
+                    throw new RegistrationException(ex.Message, ex);
+                }
             }
-            catch (RegistrationException ex) {
-                // maybe RollBack on the upper mentioned using(var something = this.repositoryHandler.CreateTransaction()
-                throw new RegistrationException(ex.Message, ex);
+        }
+
+        public async Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest)
+        {
+            if (merchantRegistrationRequest == null) {
+                throw new RegistrationException("Bad request ... ");
+            }
+            if (!merchantRegistrationRequest.Merchant.CompanyName.IsValidName(out errorMessage)) {
+                throw new RegistrationException(errorMessage);
+            }
+
+            using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
+                try {
+                    var user = await this.CreateUser(merchantRegistrationRequest.Merchant.User);
+                    user.Type = UserType.MERCHANT;
+                    user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
+                    user.Active = true;
+
+                    var merchant = new MerchantEntity {
+                        User = user,
+                        UserId = user.Id,
+                        CompanyName = merchantRegistrationRequest.Merchant.CompanyName,
+                    };
+
+                    // maybe add to the repositoryHandler with .Add() method?
+                    this.repositoryHandler.UserRepository.Add(user);
+
+                    // maybe complete transaction here?
+                    await this.repositoryHandler.ComleteAsync();
+                    var mappedMerchant = this.mapper.Map<MerchantModel>(merchant);
+
+                    // TODO: Get the token:
+                    // Alex -- this is something for you
+                    var token = await Authentication(new AuthenticationRequestModel {
+                        UserName = merchantRegistrationRequest.Merchant.User.UserName,
+                        Password = merchantRegistrationRequest.Merchant.User.Password
+                    });
+
+                    return new MerchantRegistrationResponse {
+                        Merchant = mappedMerchant,
+                        Token = token.Token,
+                        RefreshToken = token.RefreshToken
+                    };
+                }
+                catch (RegistrationException ex) {
+                    await transaction.RollbackAsync();
+                    throw new RegistrationException(ex.Message, ex);
+                }
             }
         }
 
-        public Task<IUserAccount> GetUserById(long userId)
+        public async Task<IUserAccount> GetUserById(long userId)
         {
-            throw new NotImplementedException();
+            return await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
         }
 
-        public Task<UserExecutionStatus> IsActive(string username)
+        public async Task<bool> IsActive(string username)
         {
-            throw new NotImplementedException();
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
+            return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
         }
 
-        public Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest)
+        public async Task<bool> IsActive(long userId)
         {
-            throw new NotImplementedException();
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+            return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
         }
 
-        public Task SetUserStatus(UserExecutionStatus status, string username)
+        public async Task<UserExecutionStatus> GetUserExecutionStatus(string username)
         {
-            throw new NotImplementedException();
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
+            return user.ExecutionStatus;
         }
 
-        public Task<IEnumerable<IUserAccount>> UserList(UserType userType)
+        public async Task<UserExecutionStatus> GetUserExecutionStatus(long userId)
         {
-            throw new NotImplementedException();
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+            return user.ExecutionStatus;
+        }
+
+        public async Task SetUserExecutionStatus(UserExecutionStatus status, string username)
+        {
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
+            user.ExecutionStatus = status;
+
+            await this.repositoryHandler.ComleteAsync();
+        }
+        public async Task SetUserExecutionStatus(UserExecutionStatus status, long userId)
+        {
+            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+            user.ExecutionStatus = status;
+
+            await this.repositoryHandler.ComleteAsync();
+        }
+
+        // Not sure about this
+        public async Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType)
+        {
+            IEnumerable<IUserAccount> users;
+            var allUsers = this.repositoryHandler.UserRepository.GetAllUsers();
+
+            switch (userType) {
+                case UserType.CUSTOMER:
+                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Customer)
+                                        .ToListAsync();
+                    break;
+                case UserType.MERCHANT:
+                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Merchant)
+                                        .ToListAsync();
+                    break;
+                default:
+                    users = await allUsers.Include(x => x.Customer).Include(x => x.Merchant)
+                                        .ToListAsync();
+                    break;
+            }
+
+            return users;
         }
 
         public Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest)
         {
+            // Alex take a look into this 
             throw new NotImplementedException();
         }
 
 
-
-        private async Task<bool> IsValidUser(UserModel user)
+        private async Task<bool> IsValidUserModel(UserModel user)
         {
             if (!user.UserName.IsValidUsername(out errorMessage)) {
                 return false;
             }
-
             // TODO: Check if there is a user with the same username
             // maybe something like await repositoryHandler.IfAny() ??
+            bool userNameExists = await this.repositoryHandler.UserRepository.IfAnyAsync(x => x.UserName == user.UserName);
+            if (userNameExists) {
+                return false;
+            }
 
             if (!user.Password.IsValidPassword(out errorMessage)) {
                 return false;

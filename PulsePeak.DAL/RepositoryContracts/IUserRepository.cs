@@ -5,6 +5,6 @@ namespace PulsePeak.DAL.RepositoryContracts
 {
     public interface IUserRepository : IRepositoryBase<UserBaseEnttity>
     {
-
+        IQueryable<UserBaseEnttity> GetAllUsers();
     }
 }

@@ -9,5 +9,11 @@ namespace PulsePeak.DAL.Repositories.UserRepositories
         public UserRepository(PulsePeakDbContext dbContext) : base(dbContext)
         {
         }
+
+        public IQueryable<UserBaseEnttity> GetAllUsers()
+        {
+            // something like DbContext.users.where(x => x.ExecutionStatus == Active )
+            throw new NotImplementedException();    
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using PulsePeak.Core.Entities;
+using System.Linq.Expressions;
 
 namespace PulsePeak.DAL.RepositoryAbstraction
 {
@@ -12,5 +13,14 @@ namespace PulsePeak.DAL.RepositoryAbstraction
         // and so on ...
 
         TEntity Add(TEntity entity);
+        IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities);
+        bool Update(TEntity entity);
+        void UpdateRange(IEnumerable<TEntity> entities);
+        Task<ICollection<TEntity>> GetAllAsync();
+        Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<bool> IfAnyAsync(Expression<Func<TEntity, bool>> predicate);
+        void Delete(TEntity entity);
+        void DeleteWhere(Expression<Func<TEntity, bool>> predicate);
     }
 }

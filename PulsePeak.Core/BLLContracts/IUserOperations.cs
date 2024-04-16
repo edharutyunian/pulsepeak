@@ -15,9 +15,13 @@ namespace PulsePeak.Core.BLLContracts
         Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest);
         Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest);
         Task<IUserAccount> GetUserById(long userId);
-        Task<IEnumerable<IUserAccount>> UserList(UserType userType);
-        Task<UserExecutionStatus> IsActive(string username);
-        Task SetUserStatus(UserExecutionStatus status, string username);
+        Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType);
+        Task<bool> IsActive(string username);
+        Task<bool> IsActive(long userId);
+        Task<UserExecutionStatus> GetUserExecutionStatus(string username);
+        Task<UserExecutionStatus> GetUserExecutionStatus(long iduserId);
+        Task SetUserExecutionStatus(UserExecutionStatus status, string username);
+        Task SetUserExecutionStatus(UserExecutionStatus status, long userId);
 
         // maybe ResetPassword() and ChangePassword() ??
     }
