@@ -14,12 +14,13 @@ namespace PulsePeak.Core.BLLContracts
         Task<UserBaseEnttity> CreateUser(UserModel userModel);
         Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest);
         Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest);
-        Task<IUserAccount> GetUserById(long userId);
+        Task<IUserAccount> GetUser(long username);
+        Task<IUserAccount> GetUser(string username);
         Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType);
         Task<bool> IsActive(string username);
         Task<bool> IsActive(long userId);
         Task<UserExecutionStatus> GetUserExecutionStatus(string username);
-        Task<UserExecutionStatus> GetUserExecutionStatus(long iduserId);
+        Task<UserExecutionStatus> GetUserExecutionStatus(long userId);
         Task SetUserExecutionStatus(UserExecutionStatus status, string username);
         Task SetUserExecutionStatus(UserExecutionStatus status, long userId);
 

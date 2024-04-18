@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.Enums
 {
-    public enum AddressExecutionStatus
+    public enum AddressExecutionStatus : byte
     {
         NotValidated,
         Validated

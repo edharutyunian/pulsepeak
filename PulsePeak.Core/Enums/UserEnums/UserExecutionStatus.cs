@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.Enums.UserEnums
 {
-    public enum UserExecutionStatus
+    public enum UserExecutionStatus : byte
     {
         NOTVERIFIED,
         ACTIVE,

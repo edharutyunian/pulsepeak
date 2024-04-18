@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using PulsePeak.DAL.RepositoryAbstraction;
-using PulsePeak.DAL.RepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.AddressRepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.PaymentRepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 
 namespace PulsePeak.DAL.RepositoryImplementation
 {
@@ -16,29 +19,42 @@ namespace PulsePeak.DAL.RepositoryImplementation
             this.DbContext = dbContext;
         }
 
-        private IUserRepository userRepository;
+        private readonly IUserRepository userRepository;
+        private readonly ICustomerRepository customerRepository;
+        private readonly IMerchantRepository merchantRepository;
+        private readonly IAddressRepository addressRepository;
+        private readonly IBillingAddressRepository billingAddressRepository;
+        private readonly IShippingAddressRepository shippingAddressRepository;
+        private readonly IContactRepository contactRepository;
+        private readonly IPaymentRepository paymentRepository;
+        private readonly ICreditCardRepository creditCardRepository;
+        private readonly ICategoryRepository categoryRepository;
+        private readonly IProductRepository productRepository;
+        private readonly IOrderRepository orderRepository;
+        private readonly IShoppingCartRepository shoppingCartRepository;
+
 
         public IUserRepository UserRepository => this.userRepository ?? this.serviceProvider.GetRequiredService<IUserRepository>();
+        public ICustomerRepository CustomerRepository => this.customerRepository ?? this.serviceProvider.GetRequiredService<ICustomerRepository>();
+        public IMerchantRepository MerchantRepository => this.merchantRepository ?? this.serviceProvider.GetRequiredService<IMerchantRepository>();
+        public IAddressRepository AddressRepository => this.addressRepository ?? this.serviceProvider.GetRequiredService<IAddressRepository>();
+        public IBillingAddressRepository BillingAddressRepository => this.billingAddressRepository ?? this.serviceProvider.GetRequiredService<IBillingAddressRepository>();
+        public IShippingAddressRepository ShippingAddressRepository => this.shippingAddressRepository ?? this.serviceProvider.GetRequiredService<IShippingAddressRepository>();
+        public IContactRepository ContactRepository => this.contactRepository ?? this.serviceProvider.GetRequiredService<IContactRepository>();
+        public IPaymentRepository PaymentRepository => this.paymentRepository ?? this.serviceProvider.GetRequiredService<IPaymentRepository>();
+        public ICreditCardRepository CreditCardRepository => this.creditCardRepository ?? this.serviceProvider.GetRequiredService<ICreditCardRepository>();
+        public ICategoryRepository CategoryRepository => this.categoryRepository ?? this.serviceProvider.GetRequiredService<ICategoryRepository>();
+        public IProductRepository ProductRepository => this.productRepository ?? this.serviceProvider.GetRequiredService<IProductRepository>();
+        public IOrderRepository OrderRepository => this.orderRepository ?? this.serviceProvider.GetRequiredService<IOrderRepository>();
+        public IShoppingCartRepository ShoppingCartRepository => this.shoppingCartRepository ?? this.serviceProvider.GetRequiredService<IShoppingCartRepository>();
 
 
-        public int Comlete()
-        {
-            return this.DbContext.SaveChanges();
-        }
+        public int Save() => this.DbContext.SaveChanges();
 
-        public Task<int> ComleteAsync()
-        {
-            return this.DbContext.SaveChangesAsync();
-        }
+        public Task<int> SaveAsync() => this.DbContext.SaveChangesAsync();
 
-        public IDbContextTransaction CreateTransaction()
-        {
-            return this.DbContext.Database.BeginTransaction();
-        }
+        public IDbContextTransaction CreateTransaction() => this.DbContext.Database.BeginTransaction();
 
-        public Task<IDbContextTransaction> CreateTransactionAsync()
-        {
-            return this.DbContext.Database.BeginTransactionAsync();
-        }
+        public Task<IDbContextTransaction> CreateTransactionAsync() => this.DbContext.Database.BeginTransactionAsync();
     }
 }

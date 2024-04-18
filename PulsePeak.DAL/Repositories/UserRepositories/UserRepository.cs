@@ -1,5 +1,5 @@
 ﻿using PulsePeak.Core.Entities.Users;
-using PulsePeak.DAL.RepositoryContracts;
+using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepositoryContracts;
 using PulsePeak.DAL.RepositoryImplementation;
 
 namespace PulsePeak.DAL.Repositories.UserRepositories
@@ -11,9 +11,9 @@ namespace PulsePeak.DAL.Repositories.UserRepositories
         }
 
         public IQueryable<UserBaseEnttity> GetAllUsers()
-        {
+        { 
             // something like DbContext.users.where(x => x.ExecutionStatus == Active )
             throw new NotImplementedException();    
         }
-    }
+    } 
 }

@@ -1,17 +1,12 @@
-﻿using PulsePeak.Core.Entities;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using PulsePeak.Core.Entities;
 
-namespace PulsePeak.DAL.RepositoryAbstraction
+namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
 {
     public interface IRepositoryBase<TEntity> where TEntity : class, IEntityBase
     {
-        // Arsen -- something for you to take care of 
-
-        // here should be a lot of methods like below
-        // TEntity Add(TEntity entity);
-        // bool Update(TEntity entity);
-        // and so on ...
-
+        // Arsen -- something for you to take care 
+        // maybe already not necessary
         TEntity Add(TEntity entity);
         IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities);
         bool Update(TEntity entity);

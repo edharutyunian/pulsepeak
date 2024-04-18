@@ -2,8 +2,11 @@
 
 namespace PulsePeak.Core.Entities.Addresses
 {
-    public class ShippingAddress : AddressBaseEntity, IAddress
+    public class ShippingAddress : EntityBase, IAddress
     {
+        public long AddressId { get; set; }
+        public AddressBaseEntity AddressBase { get; set; }
+
         public long UserId { get; set; }
         public UserBaseEnttity User { get; set; }
 

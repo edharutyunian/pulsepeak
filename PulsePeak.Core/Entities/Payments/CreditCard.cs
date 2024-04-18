@@ -3,7 +3,7 @@ using PulsePeak.Core.Entities.Users;
 
 namespace PulsePeak.Core.Entities.Payments
 {
-    public class CreditCard : PaymentMehodBaseEntity, IPaymentMethod
+    public class CreditCard : EntityBase, IPaymentMethod
     {
         public long OwnerId { get; set; }
         public IUserAccount Owner { get; set; }
