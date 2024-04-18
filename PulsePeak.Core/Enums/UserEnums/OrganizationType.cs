@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.Enums.UserEnums
 {
-    public enum OrganizationType
+    public enum OrganizationType : byte
     {
         SoleProprietorship,
         SingleMemberLLC,

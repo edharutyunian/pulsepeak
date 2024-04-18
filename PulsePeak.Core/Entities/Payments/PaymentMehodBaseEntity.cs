@@ -1,12 +1,16 @@
-﻿using PulsePeak.Core.Entities.Users;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums;
 
 namespace PulsePeak.Core.Entities.Payments
 {
     public class PaymentMehodBaseEntity : EntityBase, IPaymentMethod
     {
-        public long OwnerId { get; set; }
-        public IUserAccount Owner { get; set; } // should be tied to a User
+        [Required]
+        [ForeignKey("Owner.Id")]
+        public long UserId { get; set; }
+        public required IUserAccount Owner { get; set; }
 
         public PaymentMethodType PaymentMethodType { get; set; } // defaults to Cash 
 
@@ -15,6 +19,9 @@ namespace PulsePeak.Core.Entities.Payments
         {
             this.PaymentMethodType = PaymentMethodType.CreditCard;
         }
-        public PaymentMehodBaseEntity(PaymentMethodType paymentMethod) { }
+        public PaymentMehodBaseEntity(PaymentMethodType paymentMethod)
+        {
+            this.PaymentMethodType = paymentMethod;
+        }
     }
 }

@@ -6,13 +6,13 @@ using PulsePeak.Core.Entities.Contacts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Exceptions;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.Utils.Extensions;
 using PulsePeak.Core.Utils.Validators;
 using PulsePeak.Core.ViewModels.AuthModels;
 using PulsePeak.Core.ViewModels.UserViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
-using PulsePeak.DAL.RepositoryAbstraction;
 
 namespace PulsePeak.BLL.Operations
 {
@@ -31,12 +31,13 @@ namespace PulsePeak.BLL.Operations
 
         public Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest)
         {
-            // Alex this is something for you to take care of
+            // TODO [Alex]: this is something for you to take care of
             throw new NotImplementedException();
         }
 
-        public async Task<UserBaseEnttity> CreateUser(UserModel userModel)
+        async Task<UserBaseEnttity> IUserOperations.CreateUser(UserModel userModel)
         {
+            // TODO: [ED] Move the validation to the API layer
             if (!await IsValidUserModel(userModel)) {
                 throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
             }
@@ -82,7 +83,7 @@ namespace PulsePeak.BLL.Operations
             using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
                 try {
                     // not sure on this tbh
-                    var user = await this.CreateUser(customerRegistrationRequest.Customer.User);
+                    var user = await ((IUserOperations) this).CreateUser(customerRegistrationRequest.Customer.User);
                     user.Type = UserType.CUSTOMER;
                     user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
                     user.Active = true;
@@ -99,11 +100,10 @@ namespace PulsePeak.BLL.Operations
                     this.repositoryHandler.UserRepository.Add(user);
 
                     // maybe complete transaction here?
-                    await this.repositoryHandler.ComleteAsync();
+                    await this.repositoryHandler.SaveAsync();
                     var mappedCustomer = this.mapper.Map<CustomerModel>(customer);
 
-                    // TODO: Get the token:
-                    // Alex -- this is something for you
+                    // TODO [Alex]: Get the token -- this is something for you
                     var token = await Authentication(new AuthenticationRequestModel {
                         UserName = customerRegistrationRequest.Customer.User.UserName,
                         Password = customerRegistrationRequest.Customer.User.Password
@@ -135,7 +135,7 @@ namespace PulsePeak.BLL.Operations
 
             using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
                 try {
-                    var user = await this.CreateUser(merchantRegistrationRequest.Merchant.User);
+                    var user = await ((IUserOperations) this).CreateUser(merchantRegistrationRequest.Merchant.User);
                     user.Type = UserType.MERCHANT;
                     user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
                     user.Active = true;
@@ -150,11 +150,10 @@ namespace PulsePeak.BLL.Operations
                     this.repositoryHandler.UserRepository.Add(user);
 
                     // maybe complete transaction here?
-                    await this.repositoryHandler.ComleteAsync();
+                    await this.repositoryHandler.SaveAsync();
                     var mappedMerchant = this.mapper.Map<MerchantModel>(merchant);
 
-                    // TODO: Get the token:
-                    // Alex -- this is something for you
+                    // TODO [Alex]: Get the token -- this is something for you
                     var token = await Authentication(new AuthenticationRequestModel {
                         UserName = merchantRegistrationRequest.Merchant.User.UserName,
                         Password = merchantRegistrationRequest.Merchant.User.Password
@@ -173,9 +172,14 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
-        public async Task<IUserAccount> GetUserById(long userId)
+        public async Task<IUserAccount> GetUser(long userId)
         {
             return await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+        }
+
+        public async Task<IUserAccount> GetUser(string username)
+        {
+            return await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
         }
 
         public async Task<bool> IsActive(string username)
@@ -207,14 +211,14 @@ namespace PulsePeak.BLL.Operations
             var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
             user.ExecutionStatus = status;
 
-            await this.repositoryHandler.ComleteAsync();
+            await this.repositoryHandler.SaveAsync();
         }
         public async Task SetUserExecutionStatus(UserExecutionStatus status, long userId)
         {
             var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
             user.ExecutionStatus = status;
 
-            await this.repositoryHandler.ComleteAsync();
+            await this.repositoryHandler.SaveAsync();
         }
 
         // Not sure about this
@@ -243,7 +247,7 @@ namespace PulsePeak.BLL.Operations
 
         public Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest)
         {
-            // Alex take a look into this 
+            // TODO [Alex]: take a look into this 
             throw new NotImplementedException();
         }
 
@@ -270,6 +274,21 @@ namespace PulsePeak.BLL.Operations
                 return false;
             }
             return true;
+        }
+
+        private AuthResponse CreateToken(UserBaseEnttity user)
+        {
+            // TODO [Alex]: take a look into this
+
+            return new AuthResponse {
+                Success = true,
+                Token = "",
+                RefreshToken = "",
+                UserInfo = new UserInfoModel {
+                    EmailAddress = "",
+                    FullName = ""
+                }
+            };
         }
     }
 }

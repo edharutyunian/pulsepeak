@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.Enums.UserEnums
 {
-    public enum UserType
+    public enum UserType : byte
     {
         CUSTOMER,
         MERCHANT

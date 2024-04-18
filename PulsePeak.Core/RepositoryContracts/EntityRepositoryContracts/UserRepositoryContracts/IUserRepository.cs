@@ -1,7 +1,7 @@
 ﻿using PulsePeak.Core.Entities.Users;
-using PulsePeak.DAL.RepositoryAbstraction;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 
-namespace PulsePeak.DAL.RepositoryContracts
+namespace PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepositoryContracts
 {
     public interface IUserRepository : IRepositoryBase<UserBaseEnttity>
     {

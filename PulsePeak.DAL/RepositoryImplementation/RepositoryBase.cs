@@ -1,5 +1,5 @@
 ﻿using PulsePeak.Core.Entities;
-using PulsePeak.DAL.RepositoryAbstraction;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using System.Linq.Expressions;
 
 namespace PulsePeak.DAL.RepositoryImplementation
@@ -7,7 +7,10 @@ namespace PulsePeak.DAL.RepositoryImplementation
     public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : class, IEntityBase
     {
         protected PulsePeakDbContext DbContext { get; set; }
-        public RepositoryBase(PulsePeakDbContext dbContext) => this.DbContext = dbContext;
+        public RepositoryBase(PulsePeakDbContext dbContext)
+        {
+            this.DbContext = dbContext;
+        }
 
         public TEntity Add(TEntity entity)
         {

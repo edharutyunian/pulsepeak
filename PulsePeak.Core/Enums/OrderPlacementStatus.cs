@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.Enums
 {
-    public enum OrderPlacementStatus
+    public enum OrderPlacementStatus : byte
     {
         Pending,
         Processing,

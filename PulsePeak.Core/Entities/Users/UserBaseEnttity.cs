@@ -1,39 +1,54 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using PulsePeak.Core.Entities.Addresses;
 using PulsePeak.Core.Entities.Contacts;
 using PulsePeak.Core.Enums.UserEnums;
 
 namespace PulsePeak.Core.Entities.Users
 {
+    [Table("Users")]
     public class UserBaseEnttity : EntityBase, IUserAccount
     {
         [Required]
-        public string FirstName { get; set; } // required -- validation can be found in the BLL.Utils or similar
+        [ForeignKey("Customer.Id")]
+        public long CustomerId { get; set; }
+        public CustomerEntity Customer { get; set; }
+
         [Required]
-        public string LastName { get; set; } // required -- validation can be found in the BLL.Utils or similar
+        [ForeignKey("Merchnt.Id")]
+        public long MerchantId { get; set; }
+        public MerchantEntity Merchant { get; set; }
+
+        [Required]
+        [ForeignKey("BillingAddress.Id")]
+        public long BillingAddressId { get; set; }
+        public IAddress BillingAddress { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(50)")]
+        public required string FirstName { get; set; }
+        [Required]
+        [Column(TypeName = "varchar(50)")]
+        public required string LastName { get; set; }
         public string FullName {
             get {
                 return $"{this.FirstName} {this.LastName}";
             }
         }
         [Required]
-        public string UserName { get; set; } // required -- validation can be found in the BLL.Utils or similar
+        [Column("Username", TypeName = "varchar(20)")]
+        public required string UserName { get; set; }
         [Required]
-        public string Password { get; set; } // required -- validation can be found in the BLL.Utils or similar
-        public IAddress BillingAddress { get; set; } // required -- validation can be found in the BLL.Utils or similar
-        public ICollection<IContact> Contacts { get; set; } // // required -- validation not implemented yet
+        [Column(TypeName = "varchar(20)")]
+        public required string Password { get; set; }
+        public ICollection<IContact> Contacts { get; set; }
         [Required]
-        public UserType Type { get; set; } // required 
-        public UserExecutionStatus ExecutionStatus { get; set; } // should be defaulted to UserExecutionStatus.NOTVERIFIED
-        public byte[] ProfilePicture { get; set; } // optional
+        public UserType Type { get; set; }
+        public UserExecutionStatus ExecutionStatus { get; set; }
+        //public byte[] ProfilePicture { get; set; } // let's just not do this for now
 
         public bool IsActive { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsDeleted { get; set; }
-
-        public long CustomerId { get; set; }
-        public CustomerEntity Customer { get; set; }
-        public long MerchantId { get; set; }
-        public MerchantEntity Merchant { get; set; }
     }
 }
