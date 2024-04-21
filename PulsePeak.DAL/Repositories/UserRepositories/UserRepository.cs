@@ -11,9 +11,9 @@ namespace PulsePeak.DAL.Repositories.UserRepositories
         }
 
         public IQueryable<UserBaseEnttity> GetAllUsers()
-        { 
+        {
             // something like DbContext.users.where(x => x.ExecutionStatus == Active )
-            throw new NotImplementedException();    
+            throw new NotImplementedException();
         }
-    } 
+    }
 }
