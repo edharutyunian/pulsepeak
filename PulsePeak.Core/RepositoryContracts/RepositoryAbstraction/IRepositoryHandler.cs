@@ -2,7 +2,6 @@
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts;
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepositoryContracts;
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.PaymentRepositoryContracts;
-using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.AddressRepositoryContracts;
 
 namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
 {
@@ -12,9 +11,6 @@ namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
         ICustomerRepository CustomerRepository { get; }
         IMerchantRepository MerchantRepository { get; }
         IAddressRepository AddressRepository { get; }
-        IBillingAddressRepository BillingAddressRepository { get; }
-        IShippingAddressRepository ShippingAddressRepository { get; }
-        IContactRepository ContactRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         ICreditCardRepository CreditCardRepository { get; }
         ICategoryRepository CategoryRepository { get; }

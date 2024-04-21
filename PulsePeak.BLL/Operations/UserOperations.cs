@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using PulsePeak.Core.BLLContracts;
-using PulsePeak.Core.Entities.Contacts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Exceptions;
@@ -21,12 +19,13 @@ namespace PulsePeak.BLL.Operations
         private readonly IRepositoryHandler repositoryHandler;
         private readonly IMapper mapper;
         // need to add something like TokenKey and TokenParameters or so for the Auth
-        private string errorMessage = string.Empty;
+        private string errorMessage;
 
-        public UserOperations(IServiceProvider serviceProvider)
+        public UserOperations(IRepositoryHandler repositoryHandler, IMapper mapper)
         {
-            this.repositoryHandler = serviceProvider.GetRequiredService<IRepositoryHandler>();
-            this.mapper = serviceProvider.GetRequiredService<IMapper>();
+            this.repositoryHandler = repositoryHandler;
+            this.mapper = mapper;
+            this.errorMessage = string.Empty;
         }
 
         public Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest)
@@ -44,20 +43,6 @@ namespace PulsePeak.BLL.Operations
 
             try {
                 var user = this.mapper.Map<UserBaseEnttity>(userModel);
-                user.Contacts.Add(new ContactBaseEntity {
-                    UserId = user.Id,
-                    User = user,
-                    Active = true,
-                    Type = Core.Enums.ContactType.EmailAddress,
-                    Value = userModel.EmailAddress
-                });
-                user.Contacts.Add(new ContactBaseEntity {
-                    UserId = user.Id,
-                    User = user,
-                    Active = true,
-                    Type = Core.Enums.ContactType.PhoneNumber,
-                    Value = userModel.PhoneNumber
-                });
                 this.repositoryHandler.UserRepository.Add(user);
                 return user;
             }
@@ -89,14 +74,15 @@ namespace PulsePeak.BLL.Operations
                     user.Active = true;
 
                     var customer = new CustomerEntity {
-                        UsertId = user.Id,
+                        UserId = user.Id,
                         User = user,
                         FirstName = customerRegistrationRequest.Customer.FirstName,
                         LastName = customerRegistrationRequest.Customer.LastName,
                         BirthDate = customerRegistrationRequest.Customer.BirthDate,
+                        EmailAddress = customerRegistrationRequest.Customer.User.EmailAddress,
+                        PhoneNumber = customerRegistrationRequest.Customer.User.PhoneNumber
                     };
 
-                    // maybe add to the repositoryHandler with .Add() method?
                     this.repositoryHandler.UserRepository.Add(user);
 
                     // maybe complete transaction here?
@@ -144,6 +130,8 @@ namespace PulsePeak.BLL.Operations
                         User = user,
                         UserId = user.Id,
                         CompanyName = merchantRegistrationRequest.Merchant.CompanyName,
+                        EmailAddress = merchantRegistrationRequest.Merchant.User.EmailAddress,
+                        PhoneNumber = merchantRegistrationRequest.Merchant.User.PhoneNumber,
                     };
 
                     // maybe add to the repositoryHandler with .Add() method?
@@ -252,6 +240,7 @@ namespace PulsePeak.BLL.Operations
         }
 
 
+        // TODO [ED]: abstract this out, need to be used in the API model as well 
         private async Task<bool> IsValidUserModel(UserModel user)
         {
             if (!user.UserName.IsValidUsername(out errorMessage)) {

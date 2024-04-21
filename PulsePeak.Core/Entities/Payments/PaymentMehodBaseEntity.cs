@@ -5,6 +5,7 @@ using PulsePeak.Core.Enums;
 
 namespace PulsePeak.Core.Entities.Payments
 {
+    [Table("PaymentMethods")]
     public class PaymentMehodBaseEntity : EntityBase, IPaymentMethod
     {
         [Required]
