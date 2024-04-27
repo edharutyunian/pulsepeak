@@ -7,7 +7,6 @@ using PulsePeak.Core.Entities.Addresses;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Utils.EntityHelpers;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace PulsePeak.BLL.Operations
 {
@@ -36,6 +35,7 @@ namespace PulsePeak.BLL.Operations
                     : "";
                 string recipiantName = $"{user.FirstName} {user.LastName}";
 
+                // TODO [ED]: use the mapper here
                 var address = new AddressBaseEntity {
                     UserId = userId,
                     User = user,
@@ -46,7 +46,7 @@ namespace PulsePeak.BLL.Operations
                     State = addedAddress.State,
                     Country = addedAddress.Country,
                     ZipCode = addedAddress.ZipCode,
-                    Type = addressModel.AddressType,
+                    AddressType = addressModel.AddressType,
                     LocationName = locationName,
                     RecipientName = recipiantName,
                 };
@@ -56,7 +56,7 @@ namespace PulsePeak.BLL.Operations
 
                 return new AddressModel {
                     Id = address.Id,
-                    AddressType = address.Type,
+                    AddressType = address.AddressType,
                     Street = address.Street,
                     Unit = address.Unit,
                     City = address.City,
@@ -74,6 +74,7 @@ namespace PulsePeak.BLL.Operations
         {
             var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressId);
             address.Active = false;
+            repositoryHandler.AddressRepository.Update(address);
         }
 
         public async Task<AddressModel> EditBillingAddress(long userId, AddressModel addressModel)
@@ -88,6 +89,7 @@ namespace PulsePeak.BLL.Operations
                     throw new EditableArgumentException(nameof(address));
                 }
 
+                // TODO [ED]: use the mapper here 
                 #region don't like updating this way
                 //address.User = user;
                 //address.Street = addressModel.Street;
@@ -118,7 +120,7 @@ namespace PulsePeak.BLL.Operations
                                                 .UpdateProperty(x => x.State, addressModel.State)
                                                 .UpdateProperty(x => x.Country, addressModel.Country)
                                                 .UpdateProperty(x => x.ZipCode, addressModel.ZipCode)
-                                                .UpdateProperty(x => x.Type, addressModel.AddressType)
+                                                .UpdateProperty(x => x.AddressType, addressModel.AddressType)
                                                 .IsPropertyUpdated;
 
                 bool isUserAddressUpdated = user.Type == UserType.CUSTOMER
@@ -130,6 +132,9 @@ namespace PulsePeak.BLL.Operations
                                                     .UpdateProperty(x => x.Merchant.BillingAddress, address)
                                                     .IsPropertyUpdated
                                             : false;
+
+                var newAddress = this.mapper.Map<AddressBaseEntity>(addressModel);
+
 
                 if (isAddressUpdated && isUserAddressUpdated) {
                     await this.repositoryHandler.SaveAsync();
@@ -154,6 +159,7 @@ namespace PulsePeak.BLL.Operations
                     throw new EditableArgumentException(nameof(address));
                 }
 
+                // TODO [ED]: use the mapper here
                 #region don't like updating this way
                 //address.User = user;
                 //address.Street = addressModel.Street;
@@ -164,13 +170,13 @@ namespace PulsePeak.BLL.Operations
                 //address.ZipCode = addressModel.ZipCode;
 
                 //// update customer's billing address
-                //if (user.Type == UserType.CUSTOMER) {
+                //if (user.AddressType == UserType.CUSTOMER) {
                 //    address.RecipientName = $"{user.Customer.FirstName} {user.Customer.LastName}";
                 //    user.Customer.BillingAddress = address;
                 //    await this.repositoryHandler.SaveAsync();
                 //}
                 //// update customer's billing address
-                //else if (user.Type == UserType.MERCHANT) {
+                //else if (user.AddressType == UserType.MERCHANT) {
                 //    address.LocationName = $"{user.Merchant.FirstName} {user.Merchant.LastName} - {address.Street}";
                 //    user.Merchant.BillingAddress = address;
                 //    await this.repositoryHandler.SaveAsync();
@@ -184,7 +190,7 @@ namespace PulsePeak.BLL.Operations
                                                 .UpdateProperty(x => x.State, addressModel.State)
                                                 .UpdateProperty(x => x.Country, addressModel.Country)
                                                 .UpdateProperty(x => x.ZipCode, addressModel.ZipCode)
-                                                .UpdateProperty(x => x.Type, addressModel.AddressType)
+                                                .UpdateProperty(x => x.AddressType, addressModel.AddressType)
                                                 .IsPropertyUpdated;
 
                 bool isUserAddressUpdated = user.Type == UserType.CUSTOMER
@@ -216,14 +222,15 @@ namespace PulsePeak.BLL.Operations
                 State = address.State,
                 Country = address.Country,
                 ZipCode = address.ZipCode,
-                AddressType = address.Type,
+                AddressType = address.AddressType,
+                User = address.User
             };
         }
 
         public async Task<AddressModel> GetAddress(long userId, AddressType addressType)
         {
             // TODO [ED]: add exception handling
-            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.UserId == userId && x.Type == addressType);
+            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.UserId == userId && x.AddressType == addressType);
             return new AddressModel {
                 Id = address.Id,
                 Street = address.Street,
@@ -232,7 +239,7 @@ namespace PulsePeak.BLL.Operations
                 State = address.State,
                 Country = address.Country,
                 ZipCode = address.ZipCode,
-                AddressType = address.Type,
+                AddressType = address.AddressType,
             };
         }
 
@@ -243,6 +250,14 @@ namespace PulsePeak.BLL.Operations
             var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id);
 
             user.Customer.ShippingAddress = address;
+            repositoryHandler.AddressRepository.Update(address);
+            repositoryHandler.UserRepository.Update(user);
+        }
+
+        private bool IsValidAddress(AddressModel addressModel)
+        {
+            // TODO: implement
+            return true;
         }
     }
 }

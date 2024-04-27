@@ -8,7 +8,7 @@ namespace PulsePeak.Core.Entities.Payments
     public class CreditCardEntity : EntityBase, IPaymentMethod
     {
         [Required]
-        [ForeignKey("Owner.Id")]
+        [ForeignKey("User.Id")]
         public long UserId { get; set; }
         public required IUserAccount User { get; set; }
 

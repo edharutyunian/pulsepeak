@@ -1,4 +1,5 @@
-﻿using PulsePeak.Core.Enums;
+﻿using PulsePeak.Core.Entities.Users;
+using PulsePeak.Core.Enums;
 
 namespace PulsePeak.Core.ViewModels
 {
@@ -11,7 +12,8 @@ namespace PulsePeak.Core.ViewModels
         public required string State { get; set; }
         public required string Country { get; set; }
         public required string ZipCode { get; set; }
-
         public required AddressType AddressType { get; set; }
+
+        public IUserAccount User { get; set; }
     }
 }
