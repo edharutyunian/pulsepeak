@@ -10,7 +10,7 @@ namespace PulsePeak.Core.BLLContracts
     public interface IUserOperations
     {
         Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest);
-        Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest);
+        // Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest);
         Task<UserBaseEnttity> CreateUser(UserModel userModel);
         Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest);
         Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest);
