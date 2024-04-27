@@ -1,6 +1,5 @@
 ﻿using PulsePeak.Core.Entities;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
-using PulsePeak.Core.Utils;
 using System.Linq.Expressions;
 
 namespace PulsePeak.DAL.RepositoryImplementation

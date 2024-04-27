@@ -14,7 +14,7 @@ namespace PulsePeak.Core.BLLContracts
         Task<UserBaseEnttity> CreateUser(UserModel userModel);
         Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest);
         Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest);
-        Task<IUserAccount> GetUser(long username);
+        Task<IUserAccount> GetUser(long userId);
         Task<IUserAccount> GetUser(string username);
         Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType);
         Task<bool> IsActive(string username);

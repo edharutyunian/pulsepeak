@@ -11,9 +11,9 @@ namespace PulsePeak.Core.Entities.Products
     public class ProductBaseEntity : EntityBase, IProduct
     {
         [Required]
-        [ForeignKey("Owner.Id")]
+        [ForeignKey("User.Id")]
         public long UserId { get; set; }
-        public required MerchantEntity Owner { get; set; }
+        public required MerchantEntity User { get; set; }
 
         // TODO [ED]: Remove category stuff, let's just simplify as much as possible
         [Required]

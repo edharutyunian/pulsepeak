@@ -9,9 +9,9 @@ namespace PulsePeak.Core.Entities.Payments
     public class PaymentMehodBaseEntity : EntityBase, IPaymentMethod
     {
         [Required]
-        [ForeignKey("Owner.Id")]
+        [ForeignKey("User.Id")]
         public long UserId { get; set; }
-        public required IUserAccount Owner { get; set; }
+        public required IUserAccount User { get; set; }
 
         public PaymentMethodType PaymentMethodType { get; set; } // defaults to Cash 
 
