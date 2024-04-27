@@ -1,7 +1,9 @@
-﻿using PulsePeak.Core.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using PulsePeak.Core.Entities;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.Utils;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 
 namespace PulsePeak.DAL.RepositoryImplementation
 {
@@ -21,47 +23,120 @@ namespace PulsePeak.DAL.RepositoryImplementation
 
         public IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities)
         {
-            throw new NotImplementedException();
+            this.DbContext.Set<IEnumerable<TEntity>>().Add(entities);
+            return entities;
         }
 
         public bool Update(TEntity entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                this.DbContext.Update(entity);
+                this.DbContext.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while updating entity: {ex.Message}");
+                return false;
+            }
         }
 
-        public void UpdateRange(IEnumerable<TEntity> entities)
+        public bool UpdateRange(IEnumerable<TEntity> entities)
         {
-            throw new NotImplementedException();
+            try
+            {
+                this.DbContext.UpdateRange(entities);
+                this.DbContext.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while updating a range of entities: {ex.Message}");
+                return false;
+            }
         }
 
-        public Task<ICollection<TEntity>> GetAllAsync()
+        public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await this.DbContext.Set<TEntity>().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving all entities: {ex.Message}");
+                return null;
+            }
         }
 
-        public Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await this.DbContext.Set<TEntity>().FirstOrDefaultAsync(predicate);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving entity with predicate: {ex.Message}");
+                return null;
+            }
         }
 
-        public Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await this.DbContext.Set<TEntity>().Where(predicate).ToListAsync();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"An error occurred while finding entities with predicate: {ex.Message}");
+                return null;
+            }
         }
 
-        public Task<bool> IfAnyAsync(Expression<Func<TEntity, bool>> predicate)
+        public async Task<bool> IfAnyAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await this.DbContext.Set<TEntity>().AnyAsync(predicate);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while checking if any entity exists: {ex.Message}");
+                return false;
+            }
+
         }
 
-        public void Delete(TEntity entity)
+        public async void Delete(TEntity entity)
         {
-            throw new NotImplementedException();
+            try
+            {
+                this.DbContext.Remove(entity);
+                await this.DbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while deleting entity: {ex.Message}");
+                throw;
+            }
         }
 
         public void DeleteWhere(Expression<Func<TEntity, bool>> predicate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var entitiesToDelete = this.DbContext.Set<TEntity>().Where(predicate);
+                this.DbContext.RemoveRange(entitiesToDelete);
+                this.DbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while deleting entities: {ex.Message}");
+                throw;
+            }
         }
     }
 }
