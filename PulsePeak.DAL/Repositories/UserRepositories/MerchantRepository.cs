@@ -4,9 +4,9 @@ using PulsePeak.DAL.RepositoryImplementation;
 
 namespace PulsePeak.DAL.Repositories.UserRepositories
 {
-    public class MerchantRepositories : RepositoryBase<MerchantEntity>, IMerchantRepository
+    public class MerchantRepository : RepositoryBase<MerchantEntity>, IMerchantRepository
     {
-        public MerchantRepositories(PulsePeakDbContext dbContext) : base(dbContext)
+        public MerchantRepository(PulsePeakDbContext dbContext) : base(dbContext)
         {
         }
     }
