@@ -4,6 +4,8 @@ using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.Utils;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
+using PulsePeak.Core.Exceptions;
+using System.Text;
 
 namespace PulsePeak.DAL.RepositoryImplementation
 {
@@ -17,15 +19,36 @@ namespace PulsePeak.DAL.RepositoryImplementation
 
         public TEntity Add(TEntity entity)
         {
-            this.DbContext.Set<TEntity>().Add(entity);
-            return entity;
+            try
+            {
+                this.DbContext.Set<TEntity>().Add(entity);
+                this.DbContext.SaveChanges();
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"An error occurred while adding entity: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
+            }
         }
 
         public IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities)
         {
-            this.DbContext.Set<IEnumerable<TEntity>>().Add(entities);
-            return entities;
+            try
+            {
+                this.DbContext.Set<TEntity>().AddRange(entities);
+                this.DbContext.SaveChanges();
+                return entities;
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"An error occurred while adding a range of entities: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
+            }
         }
+
 
         public bool Update(TEntity entity)
         {
@@ -37,8 +60,9 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while updating entity: {ex.Message}");
-                return false;
+                string errorMessage = $"An error occurred while updating an entity: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
@@ -52,7 +76,8 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while updating a range of entities: {ex.Message}");
+                string errorMessage = GetFormattedExceptionDetails(ex, "An error occurred while updating a range of entities:");
+                Console.WriteLine(errorMessage);
                 return false;
             }
         }
@@ -65,8 +90,9 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while retrieving all entities: {ex.Message}");
-                return null;
+                string errorMessage = $"An error occurred while retrieving all entities: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
@@ -78,8 +104,9 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while retrieving entity with predicate: {ex.Message}");
-                return null;
+                string errorMessage = $"An error occurred while retrieving an entity with predicate: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
@@ -89,10 +116,11 @@ namespace PulsePeak.DAL.RepositoryImplementation
             {
                 return await this.DbContext.Set<TEntity>().Where(predicate).ToListAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while finding entities with predicate: {ex.Message}");
-                return null;
+                string errorMessage = $"An error occurred while finding entities with predicate: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
@@ -104,10 +132,10 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while checking if any entity exists: {ex.Message}");
-                return false;
+                string errorMessage = $"An error occurred while checking if any entity exists: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
-
         }
 
         public async void Delete(TEntity entity)
@@ -119,8 +147,9 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while deleting entity: {ex.Message}");
-                throw;
+                string errorMessage = $"An error occurred while deleting entity: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
@@ -134,9 +163,25 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while deleting entities: {ex.Message}");
-                throw;
+                string errorMessage = $"An error occurred while deleting entities with predicate: {ex.Message}";
+                Console.WriteLine(errorMessage);
+                throw new DbContextException(errorMessage, ex);
             }
+        }
+
+        private string GetFormattedExceptionDetails(Exception exception, string additionalErrorMessage)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine(additionalErrorMessage);
+            stringBuilder.AppendLine($"Exception Type: {exception.GetType()}");
+            stringBuilder.AppendLine($"Message: {exception.Message}");
+            stringBuilder.AppendLine($"StackTrace: {exception.StackTrace}");
+            if (exception.InnerException != null)
+            {
+                stringBuilder.AppendLine($"Inner Exception: {exception.InnerException.Message}");
+                stringBuilder.AppendLine($"Inner Exception StackTrace: {exception.InnerException.StackTrace}");
+            }
+            return stringBuilder.ToString();
         }
     }
 }

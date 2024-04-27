@@ -49,7 +49,7 @@ namespace PulsePeak.Core.Entities.Addresses
         [Column(TypeName = "varchar(1000)")]
         public string? DeliveryInstructions { get; set; } // optional
 
-        public required AddressType AddressType { get; set; } // required upon creation
+        public required AddressType Type { get; set; } // required upon creation
         public AddressExecutionStatus AddressStatus { get; set; } // defaults to AddressExecutionStatus.NotValidated upon creation 
     }
 }
