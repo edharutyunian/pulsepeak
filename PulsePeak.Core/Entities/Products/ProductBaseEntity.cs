@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PulsePeak.Core.Enums;
-using PulsePeak.Core.Entities.Categories;
 using PulsePeak.Core.Entities.Users;
 
 namespace PulsePeak.Core.Entities.Products
@@ -14,13 +13,6 @@ namespace PulsePeak.Core.Entities.Products
         [ForeignKey("User.Id")]
         public long UserId { get; set; }
         public required MerchantEntity User { get; set; }
-
-        // TODO [ED]: Remove category stuff, let's just simplify as much as possible
-        [Required]
-        [ForeignKey("Category.Id")]
-        public long CategoryId { get; set; }
-        [Required]
-        public required ICategory Category { get; set; } // required -- but need to implement the ICategory stuff end-to-end
 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow; // defaults to the DateTime.Now or smth
 
@@ -54,10 +46,6 @@ namespace PulsePeak.Core.Entities.Products
 
         public ProductAvailabilityStatus AvailabilityStatus { get; set; } // defaults to Available upon creation
 
-        public int OrderCount { get; set; } // count of orders
-
-        // TODO: [ED] Implement a Rating model and service
-        public double ProductRate { get; set; } // defaults to 0 upon creation, validation -- [1.0<x>5.0], should be counted based on the count of rewies
-        public int ReviewCount { get; set; } // total count of Reviews
+        public int OrderCount { get; set; } // total count of orders; increment on each order 
     }
 }

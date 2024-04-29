@@ -17,18 +17,14 @@ namespace PulsePeak.DAL.Repositories
 
         public AddressModel AddAddress(long userId, AddressModel address)
         {
-            var user = this.DbContext.Users.FirstOrDefault(u => u.Id == userId);
-
-            if (user == null)
-            {
-                throw new ArgumentException("User not found", nameof(userId));
-            }
+            var user = this.DbContext.Users.FirstOrDefault(u => u.Id == userId)
+                ?? throw new ArgumentException("User not found", nameof(userId));
 
             var newAddressEntity = _mapper.Map<AddressBaseEntity>(address);
             newAddressEntity.UserId = userId;
 
             this.DbContext.Addresses.Add(newAddressEntity);
-            this.DbContext.SaveChanges();
+            //this.DbContext.SaveChanges();
 
             return _mapper.Map<AddressModel>(newAddressEntity);
         }

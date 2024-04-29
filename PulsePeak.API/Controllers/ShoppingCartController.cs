@@ -5,11 +5,11 @@ namespace PulsePeak.API.Controllers
 {
     public class ShoppingCartController : Controller
     {
-        private readonly IShoppingCartOperationHandler shoppingCartOperationHandler;
+        private readonly IShoppingCartOperationHandler operationHandler;
 
         public ShoppingCartController(IServiceProvider serviceProvider)
         {
-            this.shoppingCartOperationHandler = serviceProvider.GetRequiredService<IShoppingCartOperationHandler>();
+            this.operationHandler = serviceProvider.GetRequiredService<IShoppingCartOperationHandler>();
         }
 
         // TODO [Alex]: I guess the controller need to be something like this

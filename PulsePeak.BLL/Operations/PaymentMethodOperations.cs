@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using PulsePeak.Core.BLLContracts;
+using PulsePeak.Core.BLLOperationContracts;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 
 namespace PulsePeak.BLL.Operations

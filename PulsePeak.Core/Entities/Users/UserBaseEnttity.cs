@@ -32,7 +32,7 @@ namespace PulsePeak.Core.Entities.Users
         public required string Password { get; set; }
 
         [Required]
-        public UserType Type { get; set; }
+        public required UserType Type { get; set; }
 
         public UserExecutionStatus ExecutionStatus { get; set; }
 

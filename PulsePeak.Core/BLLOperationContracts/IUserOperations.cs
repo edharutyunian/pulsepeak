@@ -5,15 +5,15 @@ using PulsePeak.Core.ViewModels.UserViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
 
-namespace PulsePeak.Core.BLLContracts
+namespace PulsePeak.Core.BLLOperationContracts
 {
     public interface IUserOperations
     {
         Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest);
         Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest);
         Task<UserBaseEnttity> CreateUser(UserModel userModel);
-        Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest);
-        Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest);
+        Task<CustomerRegistrationResponseModel> CustomerRegistration(CustomerRegistrationRequestModel customerRegistrationRequest);
+        Task<MerchantRegistrationResponseModel> MerchantRegistration(MerchantRegistrationRequestModel merchantRegistrationRequest);
         Task<IUserAccount> GetUser(long userId);
         Task<IUserAccount> GetUser(string username);
         Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType);

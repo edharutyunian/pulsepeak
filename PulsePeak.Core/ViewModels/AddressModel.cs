@@ -14,6 +14,9 @@ namespace PulsePeak.Core.ViewModels
         public required string ZipCode { get; set; }
         public required AddressType AddressType { get; set; }
 
+        public string? LocationName { get; set; }
+        public string? RecipiantName { get; set; }
+
         public IUserAccount User { get; set; }
     }
 }

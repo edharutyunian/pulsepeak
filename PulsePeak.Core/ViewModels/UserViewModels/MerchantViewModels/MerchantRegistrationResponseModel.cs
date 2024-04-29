@@ -1,6 +1,6 @@
 ﻿namespace PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels
 {
-    public class MerchantRegistrationResponse
+    public class MerchantRegistrationResponseModel
     {
         public MerchantModel Merchant { get; set; }
         public string Token { get; set; }

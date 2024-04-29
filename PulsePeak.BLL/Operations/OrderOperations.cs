@@ -1,4 +1,4 @@
-﻿using PulsePeak.Core.BLLContracts;
+﻿using PulsePeak.Core.BLLOperationContracts;
 
 namespace PulsePeak.BLL.Operations
 {
