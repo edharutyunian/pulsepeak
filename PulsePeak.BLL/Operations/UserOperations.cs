@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using PulsePeak.Core.BLLContracts;
+using Microsoft.Extensions.Logging;
+using PulsePeak.Core.BLLOperationContracts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Exceptions;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
+using PulsePeak.Core.Utils;
 using PulsePeak.Core.Utils.Extensions;
 using PulsePeak.Core.Utils.Validators;
 using PulsePeak.Core.ViewModels.AuthModels;
@@ -16,13 +18,15 @@ namespace PulsePeak.BLL.Operations
 {
     public class UserOperations : IUserOperations
     {
+        private readonly ILogger log;
         private readonly IRepositoryHandler repositoryHandler;
         private readonly IMapper mapper;
         // need to add something like TokenKey and TokenParameters or so for the Auth
         private string errorMessage;
 
-        public UserOperations(IRepositoryHandler repositoryHandler, IMapper mapper)
+        public UserOperations(ILogger logger, IRepositoryHandler repositoryHandler, IMapper mapper)
         {
+            this.log = logger;
             this.repositoryHandler = repositoryHandler;
             this.mapper = mapper;
             this.errorMessage = string.Empty;
@@ -44,14 +48,16 @@ namespace PulsePeak.BLL.Operations
             try {
                 var user = this.mapper.Map<UserBaseEnttity>(userModel);
                 this.repositoryHandler.UserRepository.Add(user);
+                await this.repositoryHandler.SaveAsync();
                 return user;
             }
-            catch (RegistrationException e) {
-                throw new RegistrationException(errorMessage, e);
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw new RegistrationException(errorMessage, ex);
             }
         }
 
-        public async Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest)
+        public async Task<CustomerRegistrationResponseModel> CustomerRegistration(CustomerRegistrationRequestModel customerRegistrationRequest)
         {
 
             if (customerRegistrationRequest == null) {
@@ -95,22 +101,23 @@ namespace PulsePeak.BLL.Operations
                         Password = customerRegistrationRequest.Customer.User.Password
                     });
 
-                    return new CustomerRegistrationResponse {
+                    return new CustomerRegistrationResponseModel {
                         Customer = mappedCustomer,
                         Token = token.Token,
                         RefreshToken = token.RefreshToken
                     };
 
                 }
-                catch (RegistrationException ex) {
+                catch (Exception ex) {
                     // maybe RollBack on the upper mentioned using(var something = this.repositoryHandler.CreateTransactionAsync()
+                    this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                     await transaction.RollbackAsync();
                     throw new RegistrationException(ex.Message, ex);
                 }
             }
         }
 
-        public async Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest)
+        public async Task<MerchantRegistrationResponseModel> MerchantRegistration(MerchantRegistrationRequestModel merchantRegistrationRequest)
         {
             if (merchantRegistrationRequest == null) {
                 throw new RegistrationException("Bad request ... ");
@@ -147,13 +154,14 @@ namespace PulsePeak.BLL.Operations
                         Password = merchantRegistrationRequest.Merchant.User.Password
                     });
 
-                    return new MerchantRegistrationResponse {
+                    return new MerchantRegistrationResponseModel {
                         Merchant = mappedMerchant,
                         Token = token.Token,
                         RefreshToken = token.RefreshToken
                     };
                 }
-                catch (RegistrationException ex) {
+                catch (Exception ex) {
+                    this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                     await transaction.RollbackAsync();
                     throw new RegistrationException(ex.Message, ex);
                 }
@@ -162,51 +170,113 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<IUserAccount> GetUser(long userId)
         {
-            return await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                        ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
+                return user;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<IUserAccount> GetUser(string username)
         {
-            return await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username)
+                    ?? throw new EntityNotFoundException($"User with username '{username}' not found.");
+                return user;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<bool> IsActive(string username)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
-            return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username)
+                    ?? throw new EntityNotFoundException($"User with username '{username}' not found.");
+
+                return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
+
 
         public async Task<bool> IsActive(long userId)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-            return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
+                return user.ExecutionStatus == UserExecutionStatus.ACTIVE;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<UserExecutionStatus> GetUserExecutionStatus(string username)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
-            return user.ExecutionStatus;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username)
+                    ?? throw new EntityNotFoundException($"User with username '{username}' not found.");
+                return user.ExecutionStatus;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<UserExecutionStatus> GetUserExecutionStatus(long userId)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-            return user.ExecutionStatus;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
+                return user.ExecutionStatus;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task SetUserExecutionStatus(UserExecutionStatus status, string username)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username);
-            user.ExecutionStatus = status;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.UserName == username)
+                    ?? throw new EntityNotFoundException($"User with username '{username}' not found.");
 
-            await this.repositoryHandler.SaveAsync();
+                user.ExecutionStatus = status;
+                this.repositoryHandler.UserRepository.Update(user);
+                await this.repositoryHandler.SaveAsync();
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
         public async Task SetUserExecutionStatus(UserExecutionStatus status, long userId)
         {
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-            user.ExecutionStatus = status;
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
 
-            await this.repositoryHandler.SaveAsync();
+                user.ExecutionStatus = status;
+                var isUserUpdated = this.repositoryHandler.UserRepository.Update(user);
+                await this.repositoryHandler.SaveAsync();
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         // Not sure about this

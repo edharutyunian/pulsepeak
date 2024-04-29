@@ -1,23 +1,28 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
+using PulsePeak.Core.Utils;
 using PulsePeak.Core.Enums;
+using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.ViewModels;
 using PulsePeak.Core.Exceptions;
-using PulsePeak.Core.BLLContracts;
+using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Entities.Addresses;
-using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
-using PulsePeak.Core.Enums.UserEnums;
 using PulsePeak.Core.Utils.EntityHelpers;
+using PulsePeak.Core.BLLOperationContracts;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 
 namespace PulsePeak.BLL.Operations
 {
     public class AddressOperations : IAddressOperations
     {
+        private readonly ILogger log;
         private readonly IRepositoryHandler repositoryHandler;
         private readonly IMapper mapper;
         private readonly string errorMessage;
 
-        public AddressOperations(IRepositoryHandler repositoryHandler, IMapper mapper)
+        public AddressOperations(ILogger logger, IRepositoryHandler repositoryHandler, IMapper mapper)
         {
+            this.log = logger;
             this.repositoryHandler = repositoryHandler;
             this.mapper = mapper;
             this.errorMessage = string.Empty;
@@ -28,121 +33,74 @@ namespace PulsePeak.BLL.Operations
             // TODO [ED]: validate model and move to the api layer
             try {
                 var addedAddress = this.repositoryHandler.AddressRepository.AddAddress(userId, addressModel);
-                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
 
-                string locationName = addedAddress.AddressType == AddressType.Shipping
-                    ? $"{user.FirstName} {user.LastName} - {addedAddress.Street}"
-                    : "";
-                string recipiantName = $"{user.FirstName} {user.LastName}";
+                var isUserUpdated = this.repositoryHandler.UserRepository.Update(user);
+                if (!isUserUpdated) {
+                    throw new DbContextException($"The {nameof(user)} has not been updated.");
+                }
 
-                // TODO [ED]: use the mapper here
-                var address = new AddressBaseEntity {
-                    UserId = userId,
-                    User = user,
-                    Id = addedAddress.Id,
-                    Street = addedAddress.Street,
-                    Unit = addedAddress.Unit,
-                    City = addedAddress.City,
-                    State = addedAddress.State,
-                    Country = addedAddress.Country,
-                    ZipCode = addedAddress.ZipCode,
-                    AddressType = addressModel.AddressType,
-                    LocationName = locationName,
-                    RecipientName = recipiantName,
-                };
-
-                this.repositoryHandler.AddressRepository.Add(address);
                 await this.repositoryHandler.SaveAsync();
 
-                return new AddressModel {
-                    Id = address.Id,
-                    AddressType = address.AddressType,
-                    Street = address.Street,
-                    Unit = address.Unit,
-                    City = address.City,
-                    State = address.State,
-                    Country = address.Country,
-                    ZipCode = address.ZipCode,
-                };
+                return addedAddress;
             }
             catch (RegistrationException ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                 throw new RegistrationException(ex.Message, ex);
             }
         }
 
         public async Task DeactivateAddress(long addressId)
         {
-            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressId);
-            address.Active = false;
-            repositoryHandler.AddressRepository.Update(address);
+            try {
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressId)
+                    ?? throw new EntityNotFoundException($"Address with ID '{addressId}' not found.");
+
+                address.Active = false;
+                var isUpdated = repositoryHandler.AddressRepository.Update(address);
+                if (!isUpdated) {
+                    throw new DbContextException($"The {nameof(AddressBaseEntity)} has not been updated.");
+                }
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<AddressModel> EditBillingAddress(long userId, AddressModel addressModel)
         {
             // TODO [ED]: Validate model
-
             try {
-                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id);
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id)
+                    ?? throw new EntityNotFoundException($"Address with ID '{addressModel.Id}' not found.");
 
-                if (address == null || user == null) {
-                    throw new EditableArgumentException(nameof(address));
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
+
+                var updatedAddress = this.mapper.Map<AddressBaseEntity>(addressModel);
+
+                // TODO [ED]: ask Tigran, Davit |  not sure on this; the MappingProfile needs to be configured properly to consider the User.Type
+                var updatedUser = this.mapper.Map<UserBaseEnttity>(addressModel.User);
+
+
+                var isAddressUpdated = this.repositoryHandler.AddressRepository.Update(updatedAddress);
+                var isUserAddressUpdated = this.repositoryHandler.UserRepository.Update(updatedUser);
+
+                if (!isAddressUpdated) {
+                    throw new DbContextException($"The {nameof(AddressBaseEntity)} has not been updated.");
+
+                }
+                if (!isUserAddressUpdated) {
+                    throw new DbContextException($"The {nameof(UserBaseEnttity)} has not been updated.");
                 }
 
-                // TODO [ED]: use the mapper here 
-                #region don't like updating this way
-                //address.User = user;
-                //address.Street = addressModel.Street;
-                //address.Unit = addressModel.Unit;
-                //address.City = addressModel.City;
-                //address.State = addressModel.State;
-                //address.Country = addressModel.Country;
-                //address.ZipCode = addressModel.ZipCode;
-
-                //// update customer's billing address
-                //if (user.Type == UserType.CUSTOMER) {
-                //    address.RecipientName = $"{user.Customer.FirstName} {user.Customer.LastName}";
-                //    user.Customer.BillingAddress = address;
-                //    await this.repositoryHandler.SaveAsync();
-                //}
-                //// update customer's billing address
-                //else if (user.Type == UserType.MERCHANT) {
-                //    address.LocationName = $"{user.Merchant.FirstName} {user.Merchant.LastName} - {address.Street}";
-                //    user.Merchant.BillingAddress = address;
-                //    await this.repositoryHandler.SaveAsync();
-                //}
-                #endregion
-                // Maybe something like this??? 
-                bool isAddressUpdated = address.StartUpdatingProperties()
-                                                .UpdateProperty(x => x.Street, addressModel.Street)
-                                                .UpdateProperty(x => x.Unit, addressModel.Unit)
-                                                .UpdateProperty(x => x.City, addressModel.City)
-                                                .UpdateProperty(x => x.State, addressModel.State)
-                                                .UpdateProperty(x => x.Country, addressModel.Country)
-                                                .UpdateProperty(x => x.ZipCode, addressModel.ZipCode)
-                                                .UpdateProperty(x => x.AddressType, addressModel.AddressType)
-                                                .IsPropertyUpdated;
-
-                bool isUserAddressUpdated = user.Type == UserType.CUSTOMER
-                                            ? user.StartUpdatingProperties()
-                                                .UpdateProperty(x => x.Customer.BillingAddress, address)
-                                                .IsPropertyUpdated
-                                            : user.Type == UserType.MERCHANT ?
-                                                user.StartUpdatingProperties()
-                                                    .UpdateProperty(x => x.Merchant.BillingAddress, address)
-                                                    .IsPropertyUpdated
-                                            : false;
-
-                var newAddress = this.mapper.Map<AddressBaseEntity>(addressModel);
-
-
-                if (isAddressUpdated && isUserAddressUpdated) {
-                    await this.repositoryHandler.SaveAsync();
-                }
-
+                await this.repositoryHandler.SaveAsync();
                 return addressModel;
             }
-            catch (EditableArgumentException ex) {
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                 throw new EditableArgumentException(ex.Message, ex);
             }
         }
@@ -150,39 +108,16 @@ namespace PulsePeak.BLL.Operations
         public async Task<AddressModel> EditShippingAddress(long userId, AddressModel addressModel)
         {
             // TODO [ED]: Validate model
-
             try {
-                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id);
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
 
-                if (address == null || user == null) {
-                    throw new EditableArgumentException(nameof(address));
-                }
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id)
+                    ?? throw new EntityNotFoundException($"Address with ID '{addressModel.Id}' not found.");
 
-                // TODO [ED]: use the mapper here
-                #region don't like updating this way
-                //address.User = user;
-                //address.Street = addressModel.Street;
-                //address.Unit = addressModel.Unit;
-                //address.City = addressModel.City;
-                //address.State = addressModel.State;
-                //address.Country = addressModel.Country;
-                //address.ZipCode = addressModel.ZipCode;
 
-                //// update customer's billing address
-                //if (user.AddressType == UserType.CUSTOMER) {
-                //    address.RecipientName = $"{user.Customer.FirstName} {user.Customer.LastName}";
-                //    user.Customer.BillingAddress = address;
-                //    await this.repositoryHandler.SaveAsync();
-                //}
-                //// update customer's billing address
-                //else if (user.AddressType == UserType.MERCHANT) {
-                //    address.LocationName = $"{user.Merchant.FirstName} {user.Merchant.LastName} - {address.Street}";
-                //    user.Merchant.BillingAddress = address;
-                //    await this.repositoryHandler.SaveAsync();
-                //}
-                #endregion
-                // Maybe something like this??? 
+                // TODO [ED]: ask Tigran, Davit |  not sure on this; the MappingProfile needs to be configured properly to consider the User.Type
+
                 bool isAddressUpdated = address.StartUpdatingProperties()
                                                 .UpdateProperty(x => x.Street, addressModel.Street)
                                                 .UpdateProperty(x => x.Unit, addressModel.Unit)
@@ -206,52 +141,66 @@ namespace PulsePeak.BLL.Operations
                 return addressModel;
             }
             catch (EditableArgumentException ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                 throw new EditableArgumentException(ex.Message, ex);
             }
         }
 
         public async Task<AddressModel> GetAddress(long addressId)
         {
-            // TODO [ED]: add exception handling
-            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressId);
-            return new AddressModel {
-                Id = addressId,
-                Street = address.Street,
-                Unit = address.Unit,
-                City = address.City,
-                State = address.State,
-                Country = address.Country,
-                ZipCode = address.ZipCode,
-                AddressType = address.AddressType,
-                User = address.User
-            };
+            try {
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressId)
+                    ?? throw new EntityNotFoundException($"Address with ID '{addressId}' not found.");
+
+                return this.mapper.Map<AddressModel>(address);
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<AddressModel> GetAddress(long userId, AddressType addressType)
         {
-            // TODO [ED]: add exception handling
-            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.UserId == userId && x.AddressType == addressType);
-            return new AddressModel {
-                Id = address.Id,
-                Street = address.Street,
-                Unit = address.Unit,
-                City = address.City,
-                State = address.State,
-                Country = address.Country,
-                ZipCode = address.ZipCode,
-                AddressType = address.AddressType,
-            };
+            try {
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.UserId == userId && x.AddressType == addressType)
+                        ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
+
+                return this.mapper.Map<AddressModel>(address);
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
-        public async Task SetShippingAddress(long userId, AddressModel addressModel)
+        public async Task<bool> SetShippingAddress(long userId, AddressModel addressModel)
         {
-            // TODO [ED]: add exception handling
-            var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
-            var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id);
+            try {
+                var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
+                    ?? throw new EntityNotFoundException($"Address with ID '{userId}' not found.");
 
-            user.Customer.ShippingAddress = address;
-            repositoryHandler.AddressRepository.Update(address);
-            repositoryHandler.UserRepository.Update(user);
+                var address = await this.repositoryHandler.AddressRepository.GetSingleAsync(x => x.Id == addressModel.Id)
+                    ?? throw new EntityNotFoundException($"Address with ID '{addressModel.Id}' not found.");
+
+                user.Customer.ShippingAddress = address;
+
+                var isAddressUpdated = repositoryHandler.AddressRepository.Update(address);
+                var isUserUpdated = repositoryHandler.UserRepository.Update(user);
+
+                if (!isAddressUpdated) {
+                    throw new DbContextException($"The {nameof(AddressBaseEntity)} has not been updated.");
+                }
+                else if (!isUserUpdated) {
+                    throw new DbContextException($"The {nameof(UserBaseEnttity)} has not been updated.");
+                }
+
+                return await this.repositoryHandler.SaveAsync() > 0;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         private bool IsValidAddress(AddressModel addressModel)

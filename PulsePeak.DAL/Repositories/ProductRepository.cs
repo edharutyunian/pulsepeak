@@ -1,4 +1,3 @@
-using PulsePeak.Core.ViewModels;
 using PulsePeak.Core.Entities.Products;
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts;
 using PulsePeak.DAL.RepositoryImplementation;

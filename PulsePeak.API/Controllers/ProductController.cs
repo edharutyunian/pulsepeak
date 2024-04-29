@@ -5,11 +5,11 @@ namespace PulsePeak.API.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly IProductOperationHandler productOperationHandler;
+        private readonly IProductOperationHandler operationHandler;
 
         public ProductController(IServiceProvider serviceProvider)
         {
-            this.productOperationHandler = serviceProvider.GetRequiredService<IProductOperationHandler>();
+            this.operationHandler = serviceProvider.GetRequiredService<IProductOperationHandler>();
         }
 
         // TODO [Alex]: I guess the controller need to be something like this

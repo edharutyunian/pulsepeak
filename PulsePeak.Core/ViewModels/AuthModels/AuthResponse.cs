@@ -1,6 +1,7 @@
 ﻿using PulsePeak.Core.ViewModels.UserViewModels;
 using System.ComponentModel.DataAnnotations;
 
+// [Alex] Any thoughts on this?
 namespace PulsePeak.Core.ViewModels.AuthModels
 {
     public class AuthResponse

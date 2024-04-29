@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PulsePeak.BLL.OperationHandlers.Contracts;
-using PulsePeak.Core.BLLContracts;
+using PulsePeak.Core.BLLOperationContracts;
 
 namespace PulsePeak.BLL.OperationHandlers
 {

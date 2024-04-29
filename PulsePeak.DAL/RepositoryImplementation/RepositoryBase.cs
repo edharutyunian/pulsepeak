@@ -1,186 +1,157 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using PulsePeak.Core.Entities;
-using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
-using System.Linq.Expressions;
-using System.Net.Http.Headers;
 using PulsePeak.Core.Exceptions;
-using System.Text;
+using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
+using PulsePeak.Core.Utils;
 
 namespace PulsePeak.DAL.RepositoryImplementation
 {
     public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : class, IEntityBase
     {
+        private readonly ILogger log;
+        private string errorMessage;
         protected PulsePeakDbContext DbContext { get; set; }
+
         public RepositoryBase(PulsePeakDbContext dbContext)
         {
+            this.errorMessage = string.Empty;
+            this.DbContext = dbContext;
+        }
+
+        public RepositoryBase(ILogger logger, PulsePeakDbContext dbContext)
+        {
+            this.log = logger;
+            this.errorMessage = string.Empty;
             this.DbContext = dbContext;
         }
 
         public TEntity Add(TEntity entity)
         {
-            try
-            {
+            try {
                 this.DbContext.Set<TEntity>().Add(entity);
-                this.DbContext.SaveChanges();
                 return entity;
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while adding entity: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while adding entity: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities)
         {
-            try
-            {
+            try {
                 this.DbContext.Set<TEntity>().AddRange(entities);
-                this.DbContext.SaveChanges();
                 return entities;
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while adding a range of entities: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while adding a range of entities: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
-
         public bool Update(TEntity entity)
         {
-            try
-            {
+            try {
                 this.DbContext.Update(entity);
-                this.DbContext.SaveChanges();
                 return true;
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while updating an entity: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while updating an entity: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public bool UpdateRange(IEnumerable<TEntity> entities)
         {
-            try
-            {
+            try {
                 this.DbContext.UpdateRange(entities);
-                this.DbContext.SaveChanges();
                 return true;
             }
-            catch (Exception ex)
-            {
-                string errorMessage = GetFormattedExceptionDetails(ex, "An error occurred while updating a range of entities:");
-                Console.WriteLine(errorMessage);
-                return false;
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while updating a range of entities: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
+                throw new DbContextException(errorMessage, ex);
             }
         }
 
         public async Task<ICollection<TEntity>> GetAllAsync()
         {
-            try
-            {
+            try {
                 return await this.DbContext.Set<TEntity>().ToListAsync();
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while retrieving all entities: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while retrieving all entities: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            try
-            {
-                return await this.DbContext.Set<TEntity>().FirstOrDefaultAsync(predicate);
+            try {
+                var entity = await this.DbContext.Set<TEntity>().FirstOrDefaultAsync(predicate)
+                    ?? throw new DbContextException($"An error occurred while retrieving an entity.");
+                return entity;
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while retrieving an entity with predicate: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while retrieving an entity: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            try
-            {
+            try {
                 return await this.DbContext.Set<TEntity>().Where(predicate).ToListAsync();
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while finding entities with predicate: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while finding entities: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public async Task<bool> IfAnyAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            try
-            {
+            try {
                 return await this.DbContext.Set<TEntity>().AnyAsync(predicate);
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while checking if any entity exists: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while checking if any entity exists: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
-        public async void Delete(TEntity entity)
+        public void Delete(TEntity entity)
         {
-            try
-            {
+            try {
                 this.DbContext.Remove(entity);
-                await this.DbContext.SaveChangesAsync();
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while deleting entity: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while deleting entity: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
         }
 
         public void DeleteWhere(Expression<Func<TEntity, bool>> predicate)
         {
-            try
-            {
+            try {
                 var entitiesToDelete = this.DbContext.Set<TEntity>().Where(predicate);
                 this.DbContext.RemoveRange(entitiesToDelete);
-                this.DbContext.SaveChanges();
             }
-            catch (Exception ex)
-            {
-                string errorMessage = $"An error occurred while deleting entities with predicate: {ex.Message}";
-                Console.WriteLine(errorMessage);
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while deleting entities with predicate: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
-        }
-
-        private string GetFormattedExceptionDetails(Exception exception, string additionalErrorMessage)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine(additionalErrorMessage);
-            stringBuilder.AppendLine($"Exception Type: {exception.GetType()}");
-            stringBuilder.AppendLine($"Message: {exception.Message}");
-            stringBuilder.AppendLine($"StackTrace: {exception.StackTrace}");
-            if (exception.InnerException != null)
-            {
-                stringBuilder.AppendLine($"Inner Exception: {exception.InnerException.Message}");
-                stringBuilder.AppendLine($"Inner Exception StackTrace: {exception.InnerException.StackTrace}");
-            }
-            return stringBuilder.ToString();
         }
     }
 }

@@ -13,7 +13,6 @@ namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
         IAddressRepository AddressRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         ICreditCardRepository CreditCardRepository { get; }
-        ICategoryRepository CategoryRepository { get; }
         IProductRepository ProductRepository { get; }
         IOrderRepository OrderRepository { get; }
         IShoppingCartRepository ShoppingCartRepository { get; }

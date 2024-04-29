@@ -1,4 +1,4 @@
-﻿namespace PulsePeak.Core.BLLContracts
+﻿namespace PulsePeak.Core.BLLOperationContracts
 {
     public interface IPaymentMethodOperations
     {
