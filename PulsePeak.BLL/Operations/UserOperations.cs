@@ -1,5 +1,14 @@
-﻿using AutoMapper;
+﻿using System.Collections.Concurrent;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Identity;
 using PulsePeak.Core.BLLContracts;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Enums.UserEnums;
@@ -12,58 +21,152 @@ using PulsePeak.Core.ViewModels.UserViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
 
+
 namespace PulsePeak.BLL.Operations
 {
     public class UserOperations : IUserOperations
     {
         private readonly IRepositoryHandler repositoryHandler;
+
         private readonly IMapper mapper;
-        // need to add something like TokenKey and TokenParameters or so for the Auth
+
         private string errorMessage;
+        private readonly IConfiguration configuration;
+        private readonly UserManager<UserBaseEnttity> userManager;
+        private readonly ConcurrentDictionary<long, string> refreshTokens; //TODO: Replace with secure storage mechanism (e.g. Database)
 
-        public UserOperations(IRepositoryHandler repositoryHandler, IMapper mapper)
+
+        public UserOperations(IServiceProvider serviceProvider, UserManager<UserBaseEnttity> userManager, IConfiguration configuration)
         {
-            this.repositoryHandler = repositoryHandler;
-            this.mapper = mapper;
-            this.errorMessage = string.Empty;
+            this.userManager = userManager;
+            this.repositoryHandler = serviceProvider.GetRequiredService<IRepositoryHandler>();
+            this.mapper = serviceProvider.GetRequiredService<IMapper>();
+            this.configuration = configuration;
+            this.refreshTokens  = new ConcurrentDictionary<long, string>();
         }
-
-        public Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest)
+        
+        public async Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest)
         {
-            // TODO [Alex]: this is something for you to take care of
-            throw new NotImplementedException();
+            var response = new AuthResponse();
+
+            var user = await UserManager.FindByNameAsync(authenticationRequest.UserName);
+
+            if (user == null)
+            {
+                response.Success = false;
+                response.Errors.Add("User not found.");
+            }
+            else if (!await UserManager.CheckPasswordAsync(user, authenticationRequest.Password))
+            {
+                response.Success = false;
+                response.Errors.Add("Wrong Password.");
+            }
+            else
+            {
+                // User authenticated, create claims and tokens
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.UserName)
+                };
+
+                // Add role claim if user has roles (assuming IdentityRole)
+                var roles = await UserManager.GetRolesAsync(user);
+                foreach (var role in roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+
+                var accessToken = GenerateToken(claims);
+                var refreshToken = GenerateRefreshToken();
+
+                // Store refresh token securely (replace with storage logic)
+                StoreRefreshToken(user.Id, refreshToken);
+
+                response.Success = true;
+                response.Token = accessToken;
+                response.RefreshToken = refreshToken;
+            }
+
+            return response;
         }
 
         async Task<UserBaseEnttity> IUserOperations.CreateUser(UserModel userModel)
         {
+
+            if (!await IsValidUserModel(userModel))
+            {
+
             // TODO: [ED] Move the validation to the API layer
             if (!await IsValidUserModel(userModel)) {
+
                 throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
             }
 
-            try {
+            try
+            {
                 var user = this.mapper.Map<UserBaseEnttity>(userModel);
+                user.Contacts.Add(new ContactBaseEntity
+                {
+                    UserId = user.Id,
+                    User = user,
+                    Active = true,
+                    Type = Core.Enums.ContactType.EmailAddress,
+                    Value = userModel.EmailAddress
+                });
+                user.Contacts.Add(new ContactBaseEntity
+                {
+                    UserId = user.Id,
+                    User = user,
+                    Active = true,
+                    Type = Core.Enums.ContactType.PhoneNumber,
+                    Value = userModel.PhoneNumber
+                });
                 this.repositoryHandler.UserRepository.Add(user);
                 return user;
             }
-            catch (RegistrationException e) {
+            catch (RegistrationException e)
+            {
                 throw new RegistrationException(errorMessage, e);
             }
         }
 
-        public async Task<CustomerRegistrationResponse> CustomerRegistration(CustomerRegistrationRequest customerRegistrationRequest)
+        public async Task<CustomerRegistrationResponse> CustomerRegistration(
+            CustomerRegistrationRequest customerRegistrationRequest)
         {
-
-            if (customerRegistrationRequest == null) {
+            if (customerRegistrationRequest == null)
+            {
                 throw new RegistrationException("Bad Request. "); // TODO: change the exception message
             }
+
             if (!customerRegistrationRequest.Customer.FirstName.IsValidName(out errorMessage) ||
-                !customerRegistrationRequest.Customer.LastName.IsValidName(out errorMessage)) {
+                !customerRegistrationRequest.Customer.LastName.IsValidName(out errorMessage))
+            {
                 throw new RegistrationException(errorMessage);
             }
-            if (!Validator.IsValidBirthDate(customerRegistrationRequest.Customer.BirthDate, out errorMessage)) {
+
+            if (!Validator.IsValidBirthDate(customerRegistrationRequest.Customer.BirthDate, out errorMessage))
+            {
                 throw new RegistrationException(errorMessage);
             }
+
+            await using var transaction = await this.repositoryHandler.CreateTransactionAsync();
+            try
+            {
+                // not sure on this tbh
+                var user = await this.CreateUser(customerRegistrationRequest.Customer.User);
+                user.Type = UserType.CUSTOMER;
+                user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
+                user.Active = true;
+
+                var customer = new CustomerEntity
+                {
+                    UsertId = user.Id,
+                    User = user,
+                    FirstName = customerRegistrationRequest.Customer.FirstName,
+                    LastName = customerRegistrationRequest.Customer.LastName,
+                    BirthDate = customerRegistrationRequest.Customer.BirthDate,
+                };
 
             using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
                 try {
@@ -101,24 +204,88 @@ namespace PulsePeak.BLL.Operations
                         RefreshToken = token.RefreshToken
                     };
 
-                }
-                catch (RegistrationException ex) {
-                    // maybe RollBack on the upper mentioned using(var something = this.repositoryHandler.CreateTransactionAsync()
-                    await transaction.RollbackAsync();
-                    throw new RegistrationException(ex.Message, ex);
-                }
+                // maybe add to the repositoryHandler with .Add() method?
+                this.repositoryHandler.UserRepository.Add(user);
+
+                // maybe complete transaction here?
+                await this.repositoryHandler.ComleteAsync();
+                var mappedCustomer = this.mapper.Map<CustomerModel>(customer);
+
+
+                var token = await Authentication(new AuthenticationRequestModel
+                {
+                    UserName = customerRegistrationRequest.Customer.User.UserName,
+                    Password = customerRegistrationRequest.Customer.User.Password
+                });
+
+                return new CustomerRegistrationResponse
+                {
+                    Customer = mappedCustomer,
+                    Token = token.Token,
+                    RefreshToken = token.RefreshToken
+                };
+            }
+            catch (RegistrationException ex)
+            {
+                // maybe RollBack on the upper mentioned using(var something = this.repositoryHandler.CreateTransactionAsync()
+                await transaction.RollbackAsync();
+                throw new RegistrationException(ex.Message, ex);
             }
         }
 
-        public async Task<MerchantRegistrationResponse> MerchantRegistration(MerchantRegistrationRequest merchantRegistrationRequest)
+        public async Task<MerchantRegistrationResponse> MerchantRegistration(
+            MerchantRegistrationRequest merchantRegistrationRequest)
         {
-            if (merchantRegistrationRequest == null) {
+            if (merchantRegistrationRequest == null)
+            {
                 throw new RegistrationException("Bad request ... ");
             }
-            if (!merchantRegistrationRequest.Merchant.CompanyName.IsValidName(out errorMessage)) {
+
+            if (!merchantRegistrationRequest.Merchant.CompanyName.IsValidName(out errorMessage))
+            {
                 throw new RegistrationException(errorMessage);
             }
 
+            await using var transaction = await this.repositoryHandler.CreateTransactionAsync();
+            try
+            {
+                var user = await this.CreateUser(merchantRegistrationRequest.Merchant.User);
+                user.Type = UserType.MERCHANT;
+                user.ExecutionStatus = UserExecutionStatus.NOTVERIFIED;
+                user.Active = true;
+
+                var merchant = new MerchantEntity
+                {
+                    User = user,
+                    UserId = user.Id,
+                    CompanyName = merchantRegistrationRequest.Merchant.CompanyName,
+                };
+
+                // maybe add to the repositoryHandler with .Add() method?
+                this.repositoryHandler.UserRepository.Add(user);
+
+                // maybe complete transaction here?
+                await this.repositoryHandler.ComleteAsync();
+                var mappedMerchant = this.mapper.Map<MerchantModel>(merchant);
+
+
+                var token = await Authentication(new AuthenticationRequestModel
+                {
+                    UserName = merchantRegistrationRequest.Merchant.User.UserName,
+                    Password = merchantRegistrationRequest.Merchant.User.Password
+                });
+
+                return new MerchantRegistrationResponse
+                {
+                    Merchant = mappedMerchant,
+                    Token = token.Token,
+                    RefreshToken = token.RefreshToken
+                };
+            }
+            catch (RegistrationException ex)
+            {
+                await transaction.RollbackAsync();
+                throw new RegistrationException(ex.Message, ex);
             using (var transaction = await this.repositoryHandler.CreateTransactionAsync()) {
                 try {
                     var user = await ((IUserOperations) this).CreateUser(merchantRegistrationRequest.Merchant.User);
@@ -201,6 +368,7 @@ namespace PulsePeak.BLL.Operations
 
             await this.repositoryHandler.SaveAsync();
         }
+
         public async Task SetUserExecutionStatus(UserExecutionStatus status, long userId)
         {
             var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId);
@@ -215,69 +383,101 @@ namespace PulsePeak.BLL.Operations
             IEnumerable<IUserAccount> users;
             var allUsers = this.repositoryHandler.UserRepository.GetAllUsers();
 
-            switch (userType) {
+            switch (userType)
+            {
                 case UserType.CUSTOMER:
                     users = await allUsers.Where(x => x.Type == userType).Include(x => x.Customer)
-                                        .ToListAsync();
+                        .ToListAsync();
                     break;
                 case UserType.MERCHANT:
                     users = await allUsers.Where(x => x.Type == userType).Include(x => x.Merchant)
-                                        .ToListAsync();
+                        .ToListAsync();
                     break;
                 default:
                     users = await allUsers.Include(x => x.Customer).Include(x => x.Merchant)
-                                        .ToListAsync();
+                        .ToListAsync();
                     break;
             }
 
             return users;
         }
 
-        public Task<AuthResponse> VerifyAndGenerateToken(TokenRequest tokenRequest)
-        {
-            // TODO [Alex]: take a look into this 
-            throw new NotImplementedException();
-        }
-
 
         // TODO [ED]: abstract this out, need to be used in the API model as well 
+
         private async Task<bool> IsValidUserModel(UserModel user)
         {
-            if (!user.UserName.IsValidUsername(out errorMessage)) {
-                return false;
-            }
-            // TODO: Check if there is a user with the same username
-            // maybe something like await repositoryHandler.IfAny() ??
-            bool userNameExists = await this.repositoryHandler.UserRepository.IfAnyAsync(x => x.UserName == user.UserName);
-            if (userNameExists) {
+            if (!user.UserName.IsValidUsername(out errorMessage))
+            {
                 return false;
             }
 
-            if (!user.Password.IsValidPassword(out errorMessage)) {
+            // TODO: Check if there is a user with the same username
+            // maybe something like await repositoryHandler.IfAny() ??
+            bool userNameExists =
+                await this.repositoryHandler.UserRepository.IfAnyAsync(x => x.UserName == user.UserName);
+            if (userNameExists)
+            {
                 return false;
             }
-            if (!user.EmailAddress.IsValidEmailAddress(out errorMessage)) {
+
+            if (!user.Password.IsValidPassword(out errorMessage))
+            {
                 return false;
             }
-            if (!user.PhoneNumber.IsValidPhoneNumber(out errorMessage)) {
+
+            if (!user.EmailAddress.IsValidEmailAddress(out errorMessage))
+            {
                 return false;
             }
+
+            if (!user.PhoneNumber.IsValidPhoneNumber(out errorMessage))
+            {
+                return false;
+            }
+
             return true;
         }
 
-        private AuthResponse CreateToken(UserBaseEnttity user)
-        {
-            // TODO [Alex]: take a look into this
 
-            return new AuthResponse {
-                Success = true,
-                Token = "",
-                RefreshToken = "",
-                UserInfo = new UserInfoModel {
-                    EmailAddress = "",
-                    FullName = ""
-                }
-            };
+        private string GenerateToken(List<Claim> authClaims)
+        {
+            var value = configuration.GetSection("AppSettings:Jwt").Value;
+            if (value != null)
+            {
+                var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8
+                    .GetBytes(value));
+                var token = new JwtSecurityToken(
+                    issuer: configuration["JWT:ValidIssuer"],
+                    audience: configuration["JWT:ValidAudience"],
+                    expires: DateTime.Now.AddHours(4),
+                    claims: authClaims,
+                    signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+                );
+                var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+                return jwt;
+            }
+
+            throw new JsonException("No JWT section in AppSettings"); 
+        }
+        
+        private static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber)
+                .Trim('=') // Remove padding characters
+                .Replace('/', '-') // Replace URL-unsafe characters
+                .Replace('+', '_');
+        }
+        private void StoreRefreshToken(long userId, string refreshToken)
+        {
+            //TODO [Alex]
+            // Replace with secure storage mechanism (e.g., database)
+            // This in-memory example just demonstrates the concept
+            refreshTokens.TryAdd(userId, refreshToken); //TODO [Alex]
         }
     }
 }
