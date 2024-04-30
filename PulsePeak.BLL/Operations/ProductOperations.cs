@@ -26,9 +26,9 @@ namespace PulsePeak.BLL.Operations
         }
 
 
+        // TODO [Ed]: Implement
         public Task<ProductModel> AddProduct(long merchantId, ProductModel productModel)
         {
-            // TODO: Implement
             throw new NotImplementedException();
         }
 
@@ -51,9 +51,9 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Implement
         public Task<ProductModel> EditProduct(ProductModel productModel)
         {
-            // TODO: Implement
             throw new NotImplementedException();
         }
 

@@ -7,6 +7,7 @@ using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
 
 namespace PulsePeak.Core.BLLOperationContracts
 {
+    // TODO: Add and implement any new required methods
     public interface IUserOperations
     {
         Task<AuthResponse> Authentication(AuthenticationRequestModel authenticationRequest);
@@ -14,6 +15,8 @@ namespace PulsePeak.Core.BLLOperationContracts
         Task<UserBaseEnttity> CreateUser(UserModel userModel);
         Task<CustomerRegistrationResponseModel> CustomerRegistration(CustomerRegistrationRequestModel customerRegistrationRequest);
         Task<MerchantRegistrationResponseModel> MerchantRegistration(MerchantRegistrationRequestModel merchantRegistrationRequest);
+        Task<CustomerModel> EditCustomerInfo(CustomerModel customerModel);
+        Task<MerchantModel> EditMerchantInfo(MerchantModel merchantModel);
         Task<IUserAccount> GetUser(long userId);
         Task<IUserAccount> GetUser(string username);
         Task<IEnumerable<IUserAccount>> GetAllUsersByType(UserType userType);

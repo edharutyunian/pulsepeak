@@ -10,6 +10,7 @@ namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
         bool Update(TEntity entity);
         bool UpdateRange(IEnumerable<TEntity> entities);
         Task<ICollection<TEntity>> GetAllAsync();
+        Task<ICollection<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
         Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate);
         Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
         Task<bool> IfAnyAsync(Expression<Func<TEntity, bool>> predicate);

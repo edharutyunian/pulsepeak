@@ -28,6 +28,7 @@ namespace PulsePeak.BLL.Operations
             this.errorMessage = string.Empty;
         }
 
+        // TODO [Ed]: Refactor
         public async Task<AddressModel> AddAddress(long userId, AddressModel addressModel)
         {
             // TODO [ED]: validate model and move to the api layer
@@ -69,6 +70,7 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Refactor
         public async Task<AddressModel> EditBillingAddress(long userId, AddressModel addressModel)
         {
             // TODO [ED]: Validate model
@@ -105,6 +107,7 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Refactor
         public async Task<AddressModel> EditShippingAddress(long userId, AddressModel addressModel)
         {
             // TODO [ED]: Validate model
@@ -174,6 +177,7 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Refactor
         public async Task<bool> SetShippingAddress(long userId, AddressModel addressModel)
         {
             try {

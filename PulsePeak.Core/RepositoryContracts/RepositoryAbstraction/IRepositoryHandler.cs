@@ -11,8 +11,7 @@ namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
         ICustomerRepository CustomerRepository { get; }
         IMerchantRepository MerchantRepository { get; }
         IAddressRepository AddressRepository { get; }
-        IPaymentRepository PaymentRepository { get; }
-        ICreditCardRepository CreditCardRepository { get; }
+        IPaymentMethodRepository PaymentMethodRepository { get; }
         IProductRepository ProductRepository { get; }
         IOrderRepository OrderRepository { get; }
         IShoppingCartRepository ShoppingCartRepository { get; }
