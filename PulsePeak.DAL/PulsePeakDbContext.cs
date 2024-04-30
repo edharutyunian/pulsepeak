@@ -5,7 +5,6 @@ using PulsePeak.Core.Entities.Payments;
 using PulsePeak.Core.Entities.Products;
 using PulsePeak.Core.Entities.ShoppingCart;
 using PulsePeak.Core.Entities.Orders;
-using System.Net.NetworkInformation;
 
 namespace PulsePeak.DAL
 {
@@ -18,14 +17,13 @@ namespace PulsePeak.DAL
         public DbSet<MerchantEntity> Merchant { get; set; }
         public DbSet<AddressBaseEntity> Addresses { get; set; }
         public DbSet<PaymentMehodBaseEntity> PaymentMehods { get; set; }
-        public DbSet<CreditCardEntity> CreditCards { get; set; }
         public DbSet<ProductBaseEntity> Products { get; set; }
         public DbSet<ShoppingCartBaseEntity> ShoppingCarts { get; set; }
         public DbSet<OrderBaseEntity> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // TODO [ED]: Implement
+            // TODO [Arsen]: Implement
             base.OnModelCreating(modelBuilder);
         }
     }
