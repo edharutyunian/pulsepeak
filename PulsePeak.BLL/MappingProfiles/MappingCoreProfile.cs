@@ -3,6 +3,7 @@ using PulsePeak.Core.ViewModels;
 using PulsePeak.Core.Entities.Users;
 using PulsePeak.Core.Entities.Products;
 using PulsePeak.Core.Entities.Addresses;
+using PulsePeak.Core.Entities.Payments;
 
 namespace PulsePeak.BLL.MappingProfiles
 {
@@ -13,6 +14,7 @@ namespace PulsePeak.BLL.MappingProfiles
         {
             CreateMap<AddressModel, AddressBaseEntity>().ReverseMap();
             CreateMap<ProductModel, ProductBaseEntity>().ReverseMap();
+            CreateMap<PaymentMethodModel, PaymentMehodBaseEntity>().ReverseMap();
 
             CreateMap<UserBaseEnttity, IUserAccount>()
                 .ConvertUsing<UserConverter>();

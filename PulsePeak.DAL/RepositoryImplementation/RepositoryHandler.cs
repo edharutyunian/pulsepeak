@@ -22,8 +22,7 @@ namespace PulsePeak.DAL.RepositoryImplementation
         private readonly ICustomerRepository customerRepository;
         private readonly IMerchantRepository merchantRepository;
         private readonly IAddressRepository addressRepository;
-        private readonly IPaymentRepository paymentRepository;
-        private readonly ICreditCardRepository creditCardRepository;
+        private readonly IPaymentMethodRepository paymentMethodRepository;
         private readonly ICategoryRepository categoryRepository;
         private readonly IProductRepository productRepository;
         private readonly IOrderRepository orderRepository;
@@ -34,8 +33,7 @@ namespace PulsePeak.DAL.RepositoryImplementation
         public ICustomerRepository CustomerRepository => this.customerRepository ?? this.serviceProvider.GetRequiredService<ICustomerRepository>();
         public IMerchantRepository MerchantRepository => this.merchantRepository ?? this.serviceProvider.GetRequiredService<IMerchantRepository>();
         public IAddressRepository AddressRepository => this.addressRepository ?? this.serviceProvider.GetRequiredService<IAddressRepository>();
-        public IPaymentRepository PaymentRepository => this.paymentRepository ?? this.serviceProvider.GetRequiredService<IPaymentRepository>();
-        public ICreditCardRepository CreditCardRepository => this.creditCardRepository ?? this.serviceProvider.GetRequiredService<ICreditCardRepository>();
+        public IPaymentMethodRepository PaymentMethodRepository => this.paymentMethodRepository ?? this.serviceProvider.GetRequiredService<IPaymentMethodRepository>();
         public ICategoryRepository CategoryRepository => this.categoryRepository ?? this.serviceProvider.GetRequiredService<ICategoryRepository>();
         public IProductRepository ProductRepository => this.productRepository ?? this.serviceProvider.GetRequiredService<IProductRepository>();
         public IOrderRepository OrderRepository => this.orderRepository ?? this.serviceProvider.GetRequiredService<IOrderRepository>();

@@ -57,6 +57,7 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Refactor
         public async Task<CustomerRegistrationResponseModel> CustomerRegistration(CustomerRegistrationRequestModel customerRegistrationRequest)
         {
 
@@ -117,6 +118,13 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
+        // TODO [Ed]: Implement (not sure on the models)
+        public Task<CustomerModel> EditCustomerInfo(CustomerModel customerModel)
+        {
+            throw new NotImplementedException();
+        }
+
+        // TODO [Ed]: Refactor
         public async Task<MerchantRegistrationResponseModel> MerchantRegistration(MerchantRegistrationRequestModel merchantRegistrationRequest)
         {
             if (merchantRegistrationRequest == null) {
@@ -166,6 +174,12 @@ namespace PulsePeak.BLL.Operations
                     throw new RegistrationException(ex.Message, ex);
                 }
             }
+        }
+
+        // TODO [Ed]: Implement (not sure on the models)
+        public Task<MerchantModel> EditMerchantInfo(MerchantModel merchantModel)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IUserAccount> GetUser(long userId)
@@ -287,16 +301,13 @@ namespace PulsePeak.BLL.Operations
 
             switch (userType) {
                 case UserType.CUSTOMER:
-                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Customer)
-                                        .ToListAsync();
+                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Customer).ToListAsync();
                     break;
                 case UserType.MERCHANT:
-                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Merchant)
-                                        .ToListAsync();
+                    users = await allUsers.Where(x => x.Type == userType).Include(x => x.Merchant).ToListAsync();
                     break;
                 default:
-                    users = await allUsers.Include(x => x.Customer).Include(x => x.Merchant)
-                                        .ToListAsync();
+                    users = await allUsers.Include(x => x.Customer).Include(x => x.Merchant).ToListAsync();
                     break;
             }
 

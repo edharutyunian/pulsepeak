@@ -91,6 +91,18 @@ namespace PulsePeak.DAL.RepositoryImplementation
             }
         }
 
+        public async Task<ICollection<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            try {
+                return await this.DbContext.Set<TEntity>().Where(predicate).ToListAsync();
+            }
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while retrieving all entities with the given predicate: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
+                throw new DbContextException(errorMessage, ex);
+            }
+        }
+
         public async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
         {
             try {

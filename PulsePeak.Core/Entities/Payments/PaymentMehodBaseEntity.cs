@@ -8,9 +8,9 @@ namespace PulsePeak.Core.Entities.Payments
     public class PaymentMehodBaseEntity : EntityBase, IPaymentMethod
     {
         [Required]
-        [ForeignKey("User.Id")]
-        public long UserId { get; set; }
-        public required UserBaseEnttity User { get; set; }
+        [ForeignKey("Customer.Id")]
+        public long CustomerId { get; set; }
+        public required CustomerEntity Customer { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(16)")]
@@ -37,6 +37,7 @@ namespace PulsePeak.Core.Entities.Payments
         public string? CardName { get; set; }
 
         [Required]
-        public required bool IsPrimarry { get; set; }
+        public required bool IsPrimary { get; set; }
+        public bool IsActive { get; set; }
     }
 }
