@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulsePeak.Core", "PulsePeak
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulsePeak.DAL", "PulsePeak.DAL\PulsePeak.DAL.csproj", "{162D18C6-06DD-46E6-9919-FA2C340CC10C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulsePeak.WEB", "PulsePeak.WEB\PulsePeak.WEB.csproj", "{D30CB895-4340-4065-8B22-80EBBF2B5332}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulsePeak.WEB", "PulsePeak.WEB\PulsePeak.WEB.csproj", "{D30CB895-4340-4065-8B22-80EBBF2B5332}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
