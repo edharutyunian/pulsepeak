@@ -10,9 +10,9 @@ namespace PulsePeak.Core.Entities.Products
     public class ProductBaseEntity : EntityBase, IProduct
     {
         [Required]
-        [ForeignKey("User.Id")]
-        public long UserId { get; set; }
-        public required MerchantEntity User { get; set; }
+        [ForeignKey("Merchant.Id")]
+        public long MerchantId { get; set; }
+        public required MerchantEntity Merchant { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow; // defaults to the DateTime.Now or smth
 

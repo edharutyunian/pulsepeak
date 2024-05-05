@@ -41,6 +41,6 @@ namespace PulsePeak.Core.Entities.Users
 
         [Required]
         public OrganizationType OrganizationType { get; set; } // required
-        public ICollection<IProduct>? Store { get; set; } // can be disregarded upon User creation | required only for checking out 
+        public ICollection<ProductBaseEntity> Store { get; set; } // can be disregarded upon User creation | required only for checking out 
     }
 }

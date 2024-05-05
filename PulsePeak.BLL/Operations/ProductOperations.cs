@@ -15,7 +15,7 @@ namespace PulsePeak.BLL.Operations
         private readonly ILogger log;
         private readonly IRepositoryHandler repositoryHandler;
         private readonly IMapper mapper;
-        private readonly string errorMessage;
+        private string errorMessage;
 
         public ProductOperations(ILogger logger, IRepositoryHandler repositoryHandler, IMapper mapper)
         {
@@ -26,10 +26,38 @@ namespace PulsePeak.BLL.Operations
         }
 
 
-        // TODO [Ed]: Implement
-        public Task<ProductModel> AddProduct(long merchantId, ProductModel productModel)
+        public async Task<ProductModel> AddProduct(long merchantId, ProductModel productModel)
         {
-            throw new NotImplementedException();
+            // TODO: Validate model here and move to the API layer as well
+            if (!IsValidProductModel(productModel)) {
+                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+            }
+
+            try {
+                var merchant = await this.repositoryHandler.MerchantRepository.GetSingleAsync(x => x.Id == merchantId)
+                    ?? throw new EntityNotFoundException($"Merchant with ID '{merchantId}' not found.");
+
+                if (productModel.MerchantId != merchant.Id) {
+                    throw new RegistrationException($"Model's Merchant ID '{productModel.MerchantId}' and provided Merchant ID '{merchant.Id}' are not matching.");
+                }
+
+                // add the product
+                var addedProduct = this.repositoryHandler.ProductRepository.AddProduct(merchantId, productModel);
+
+                // update merchant entity
+                var isMerchantUpdated = this.repositoryHandler.MerchantRepository.Update(merchant);
+                if (!isMerchantUpdated) {
+                    throw new DbContextException($"The {nameof(merchant)} has not been updated.");
+                }
+
+                await this.repositoryHandler.SaveAsync();
+
+                return addedProduct;
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task DeactivateProduct(long productId)
@@ -51,10 +79,50 @@ namespace PulsePeak.BLL.Operations
             }
         }
 
-        // TODO [Ed]: Implement
-        public Task<ProductModel> EditProduct(ProductModel productModel)
+        public async Task<ProductModel> EditProduct(ProductModel productModel)
         {
-            throw new NotImplementedException();
+            // TODO: Validate model here and move to the API layer as well
+            if (!IsValidProductModel(productModel)) {
+                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+            }
+            try {
+                // get the product
+                var product = await this.repositoryHandler.ProductRepository.GetSingleAsync(x => x.Id == productModel.Id)
+                    ?? throw new EntityNotFoundException($"Product with ID '{productModel.Id}' not found.");
+
+                // get the merchant
+                var merchant = await this.repositoryHandler.MerchantRepository.GetSingleAsync(x => x.Id == productModel.MerchantId)
+                    ?? throw new EntityNotFoundException($"Merchant with ID '{productModel.MerchantId}' not found.");
+
+                // check if the merchant contains that product
+                var merchantsProduct = merchant.Store.TakeWhile(x => x.Id == product.Id)
+                    ?? throw new KeyNotFoundException($"Merchant with ID '{merchant.Id}' do not contain a Product with the ID '{product.Id}'.");
+
+                // map the payment method and update in the DB 
+                var editedProduct = this.mapper.Map<ProductBaseEntity>(productModel);
+                editedProduct.Merchant = merchant;
+
+                var isProductUpdated = this.repositoryHandler.ProductRepository.Update(editedProduct);
+                if (!isProductUpdated) {
+                    throw new DbContextException($"The {nameof(editedProduct)} has not been updated.");
+                }
+
+                // not the best solution I guess, but remove and add the edited payment method; update in the DB
+                merchant.Store.Remove(merchantsProduct.First());
+                merchant.Store.Add(editedProduct);
+
+                var isMerchantUpdated = this.repositoryHandler.MerchantRepository.Update(merchant);
+                if (!isMerchantUpdated) {
+                    throw new DbContextException($"The {nameof(merchant)} has not been updated.");
+                }
+
+                await this.repositoryHandler.SaveAsync();
+                return this.mapper.Map<ProductModel>(editedProduct);
+            }
+            catch (Exception ex) {
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
+                throw;
+            }
         }
 
         public async Task<ProductModel> GetProduct(long productId)
@@ -185,6 +253,12 @@ namespace PulsePeak.BLL.Operations
                 this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
                 throw;
             }
+        }
+
+        // TODO: Implement... Abstract this out, need to be used in the API model as well 
+        private bool IsValidProductModel(ProductModel productModel)
+        {
+            return false;
         }
     }
 }

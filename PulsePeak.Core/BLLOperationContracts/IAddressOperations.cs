@@ -14,6 +14,6 @@ namespace PulsePeak.Core.BLLOperationContracts
         Task<bool> SetShippingAddress(long userId, AddressModel addressModel);
 
         Task<AddressModel> GetAddress(long addressId);
-        Task<AddressModel> GetAddress(long userId, AddressType addressType);
+        Task<AddressModel> GetUsersAddresses(long userId, AddressType addressType);
     }
 }

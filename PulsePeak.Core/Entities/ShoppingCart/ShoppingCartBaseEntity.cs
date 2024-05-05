@@ -11,7 +11,7 @@ namespace PulsePeak.Core.Entities.ShoppingCart
         [Required]
         public int TotalItemCount { get; set; } // update upon adding an IProduct to thee ShoppingCart
         [Required]
-        public required ICollection<IProduct> Products { get; set; }
+        public required ICollection<ProductBaseEntity> Products { get; set; }
 
         [Required]
         [ForeignKey("Customer.Id")]
