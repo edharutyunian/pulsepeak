@@ -17,6 +17,6 @@ namespace PulsePeak.Core.ViewModels
         public string? LocationName { get; set; }
         public string? RecipiantName { get; set; }
 
-        public IUserAccount User { get; set; }
+        public UserBaseEnttity User { get; set; }
     }
 }

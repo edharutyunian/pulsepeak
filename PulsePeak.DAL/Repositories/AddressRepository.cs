@@ -1,32 +1,42 @@
-﻿using PulsePeak.Core.ViewModels;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
+using PulsePeak.Core.Utils;
+using PulsePeak.Core.ViewModels;
+using PulsePeak.Core.Exceptions;
 using PulsePeak.Core.Entities.Addresses;
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts;
 using PulsePeak.DAL.RepositoryImplementation;
-using AutoMapper;
 
 namespace PulsePeak.DAL.Repositories
 {
     public class AddressRepository : RepositoryBase<AddressBaseEntity>, IAddressRepository
     {
-        private readonly IMapper _mapper;
+        private readonly ILogger log;
+        private readonly IMapper mapper;
+        private string errorMessage;
 
-        public AddressRepository(PulsePeakDbContext dbContext, IMapper mapper) : base(dbContext)
+        public AddressRepository(PulsePeakDbContext dbContext, ILogger logger, IMapper mapper) : base(dbContext)
         {
-            _mapper = mapper;
+            this.log = logger;
+            this.mapper = mapper;
+            this.errorMessage = string.Empty;
         }
 
         public AddressModel AddAddress(long userId, AddressModel address)
         {
-            var user = this.DbContext.Users.FirstOrDefault(u => u.Id == userId)
-                ?? throw new ArgumentException("User not found", nameof(userId));
+            try {
+                var newAddressEntity = mapper.Map<AddressBaseEntity>(address);
+                newAddressEntity.UserId = userId;
 
-            var newAddressEntity = _mapper.Map<AddressBaseEntity>(address);
-            newAddressEntity.UserId = userId;
+                this.DbContext.Addresses.Add(newAddressEntity);
 
-            this.DbContext.Addresses.Add(newAddressEntity);
-            //this.DbContext.SaveChanges();
-
-            return _mapper.Map<AddressModel>(newAddressEntity);
+                return mapper.Map<AddressModel>(newAddressEntity);
+            }
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while retrieving all entities: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
+                throw new DbContextException(errorMessage, ex);
+            }
         }
     }
 }

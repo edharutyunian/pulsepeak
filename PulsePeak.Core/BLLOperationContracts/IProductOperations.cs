@@ -3,7 +3,6 @@ using PulsePeak.Core.ViewModels;
 
 namespace PulsePeak.Core.BLLOperationContracts
 {
-    // TODO: Add and implement any new required methods
     public interface IProductOperations
     {
         Task<ProductModel> AddProduct(long merchantId, ProductModel productModel);

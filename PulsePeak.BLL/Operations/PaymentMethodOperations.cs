@@ -30,27 +30,33 @@ namespace PulsePeak.BLL.Operations
         {
             // TODO: Validate model here and move to the API layer as well
             if (!IsValidPaymentMethodModel(paymentMethodModel)) {
-                throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
+                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
             }
 
             try {
-
+                // check the customer
                 var customer = await this.repositoryHandler.CustomerRepository.GetSingleAsync(x => x.Id == customerId)
                     ?? throw new EntityNotFoundException($"Customer with ID '{customerId}' not found.");
 
-                var payment = this.mapper.Map<PaymentMehodBaseEntity>(paymentMethodModel);
-                var addedPayment = this.repositoryHandler.PaymentMethodRepository.Add(payment);
-
-                addedPayment.Customer = customer;
+                // check the customer id and model's id
+                if (paymentMethodModel.CustomerId != customer.Id) {
+                    throw new RegistrationException($"Model's Customer ID '{paymentMethodModel.CustomerId}' and provided Customer ID '{customer.Id}' are not matching.");
+                }
 
                 if (!customer.PaymentMethods.Any(x => x.IsPrimary)) {
-                    addedPayment.IsPrimary = true;
+                    paymentMethodModel.IsPrimary = true;
                 }
-                customer.PaymentMethods.Add(addedPayment);
 
+                // add and map payment method
+                var addedPayment = this.repositoryHandler.PaymentMethodRepository.AddPaymentMethod(customerId, paymentMethodModel);
+                var mappedPayment = this.mapper.Map<PaymentMehodBaseEntity>(addedPayment);
+
+                customer.PaymentMethods.Add(mappedPayment);
+
+                // update customer's entity
                 var isCustoemerUpdated = this.repositoryHandler.CustomerRepository.Update(customer);
                 if (!isCustoemerUpdated) {
-                    throw new DbContextException($"The {nameof(CustomerEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(customer)} has not been updated.");
                 }
 
                 await this.repositoryHandler.SaveAsync();
@@ -66,11 +72,10 @@ namespace PulsePeak.BLL.Operations
         public async Task<PaymentMethodModel> EditPaymentMethod(PaymentMethodModel paymentMethodModel)
         {
             // TODO: Validate model here and move to the API layer as well
+            if (!IsValidPaymentMethodModel(paymentMethodModel)) {
+                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+            }
             try {
-                if (!IsValidPaymentMethodModel(paymentMethodModel)) {
-                    throw new RegistrationException(errorMessage, new RegistrationException(errorMessage));
-                }
-
                 // get the payment method
                 var payment = await this.repositoryHandler.PaymentMethodRepository.GetSingleAsync(x => x.Id == paymentMethodModel.Id)
                     ?? throw new EntityNotFoundException($"Payment Method with ID '{paymentMethodModel.Id}' not found.");
@@ -81,7 +86,7 @@ namespace PulsePeak.BLL.Operations
 
                 // check if the customer contains that payment method
                 var customersPaymentMethod = customer.PaymentMethods.TakeWhile(x => x.Id == payment.Id)
-                    ?? throw new KeyNotFoundException($"Customer with ID '{paymentMethodModel.CustomerId}' do not include a payment method with the ID '{paymentMethodModel.Id}'.");
+                    ?? throw new KeyNotFoundException($"Customer with ID '{paymentMethodModel.CustomerId}' do not contain a payment method with the ID '{paymentMethodModel.Id}'.");
 
                 // map the payment method and update in the DB 
                 var editedPayment = this.mapper.Map<PaymentMehodBaseEntity>(paymentMethodModel);
@@ -89,7 +94,7 @@ namespace PulsePeak.BLL.Operations
 
                 var isPaymentUpdated = this.repositoryHandler.PaymentMethodRepository.Update(editedPayment);
                 if (!isPaymentUpdated) {
-                    throw new DbContextException($"The {nameof(PaymentMehodBaseEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(editedPayment)} has not been updated.");
                 }
 
                 // not the best solution I guess, but remove and add the edited payment method; update in the DB
@@ -98,7 +103,7 @@ namespace PulsePeak.BLL.Operations
 
                 var isCustomerUpdated = this.repositoryHandler.CustomerRepository.Update(customer);
                 if (!isCustomerUpdated) {
-                    throw new DbContextException($"The {nameof(CustomerEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(customer)} has not been updated.");
                 }
 
                 await this.repositoryHandler.SaveAsync();
@@ -164,12 +169,12 @@ namespace PulsePeak.BLL.Operations
 
                 var isPaymentUpdated = this.repositoryHandler.PaymentMethodRepository.Update(payment);
                 if (!isPaymentUpdated) {
-                    throw new DbContextException($"The {nameof(PaymentMehodBaseEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(payment)} has not been updated.");
                 }
 
                 var isCustoemerUpdated = this.repositoryHandler.CustomerRepository.Update(customer);
                 if (!isCustoemerUpdated) {
-                    throw new DbContextException($"The {nameof(CustomerEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(customer)} has not been updated.");
 
                 }
 
@@ -191,7 +196,7 @@ namespace PulsePeak.BLL.Operations
 
                 var isPaymentUpdated = this.repositoryHandler.PaymentMethodRepository.Update(payment);
                 if (!isPaymentUpdated) {
-                    throw new DbContextException($"The {nameof(PaymentMehodBaseEntity)} has not been updated.");
+                    throw new DbContextException($"The {nameof(payment)} has not been updated.");
                 }
                 return await this.repositoryHandler.SaveAsync() > 0;
             }

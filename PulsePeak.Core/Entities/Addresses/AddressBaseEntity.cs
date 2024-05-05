@@ -11,7 +11,7 @@ namespace PulsePeak.Core.Entities.Addresses
         [Required]
         [ForeignKey("User.Id")]
         public long UserId { get; set; }
-        public required IUserAccount User { get; set; }
+        public required UserBaseEnttity User { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(100)")]

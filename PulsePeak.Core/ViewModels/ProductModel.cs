@@ -16,6 +16,7 @@ namespace PulsePeak.Core.ViewModels
 
         public ProductAvailabilityStatus AvailabilityStatus { get; set; } // defaults to Available upon creation
 
-        public required MerchantEntity User { get; set; }
+        public long MerchantId { get; set; }
+        public required MerchantEntity Merchant { get; set; }
     }
 }
