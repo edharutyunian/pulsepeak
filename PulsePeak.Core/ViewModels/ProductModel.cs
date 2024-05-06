@@ -10,6 +10,7 @@ namespace PulsePeak.Core.ViewModels
         public required string Title { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
+        public int AddedQuantity { get; set; }
         public int TotalAvailableQuantity { get; set; }
         public int MinQuantityPerOrder { get; set; }
         public int MaxQuantityPerOrder { get; set; }
