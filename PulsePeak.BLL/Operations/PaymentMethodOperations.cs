@@ -85,7 +85,7 @@ namespace PulsePeak.BLL.Operations
                     ?? throw new EntityNotFoundException($"Customer with ID '{paymentMethodModel.CustomerId}' not found.");
 
                 // check if the customer contains that payment method
-                var customersPaymentMethod = customer.PaymentMethods.TakeWhile(x => x.Id == payment.Id)
+                var customersPaymentMethod = customer.PaymentMethods.TakeWhile(x => x.Id == payment.Id).FirstOrDefault()
                     ?? throw new KeyNotFoundException($"Customer with ID '{paymentMethodModel.CustomerId}' do not contain a payment method with the ID '{paymentMethodModel.Id}'.");
 
                 // map the payment method and update in the DB 
@@ -98,7 +98,7 @@ namespace PulsePeak.BLL.Operations
                 }
 
                 // not the best solution I guess, but remove and add the edited payment method; update in the DB
-                customer.PaymentMethods.Remove(customersPaymentMethod.First());
+                customer.PaymentMethods.Remove(customersPaymentMethod);
                 customer.PaymentMethods.Add(editedPayment);
 
                 var isCustomerUpdated = this.repositoryHandler.CustomerRepository.Update(customer);

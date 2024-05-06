@@ -28,12 +28,12 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<ProductModel> AddProduct(long merchantId, ProductModel productModel)
         {
-            // TODO: Validate model here and move to the API layer as well
-            if (!IsValidProductModel(productModel)) {
-                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
-            }
-
             try {
+                // TODO: Validate model here and move to the API layer as well
+                if (!IsValidProductModel(productModel)) {
+                    throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+                }
+
                 var merchant = await this.repositoryHandler.MerchantRepository.GetSingleAsync(x => x.Id == merchantId)
                     ?? throw new EntityNotFoundException($"Merchant with ID '{merchantId}' not found.");
 
