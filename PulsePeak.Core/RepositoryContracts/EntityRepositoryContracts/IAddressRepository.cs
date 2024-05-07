@@ -1,5 +1,4 @@
 ﻿using PulsePeak.Core.Entities.Addresses;
-using PulsePeak.Core.Enums;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.ViewModels;
 

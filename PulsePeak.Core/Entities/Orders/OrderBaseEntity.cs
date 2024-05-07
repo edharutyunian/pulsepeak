@@ -19,23 +19,23 @@ namespace PulsePeak.Core.Entities.Orders
         [Required]
         [ForeignKey("ShoppingCart.Id")]
         public long ShoppingCartId { get; set; }
-        public required IShoppingCart ShoppingCart { get; set; }
+        public required ShoppingCartBaseEntity ShoppingCart { get; set; }
 
         [Required]
         [ForeignKey("ShippingAddress.Id")]
         public long ShippingAddressId { get; set; }
-        public required IAddress ShippingAddress { get; set; }
+        public required AddressBaseEntity ShippingAddress { get; set; }
 
         [Required]
         [ForeignKey("PaymentMethod.Id")]
         public long PaymentMethodId { get; set; }
         [Required]
-        public required IPaymentMethod PaymentMethod { get; set; } // required
+        public required PaymentMehodBaseEntity PaymentMethod { get; set; } // required
 
         [Required]
-        public int OrderNumber { get; set; } // Generatable
+        public int OrderNumber { get; set; } // Generate on CreateOrder() 
 
-        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+        public DateTime OrderDate { get; set; } //= DateTime.UtcNow;
         public OrderPlacementStatus OrderStatus { get; set; } // defaults to OrderPlacementStatus.Pendion upon Order creation
         public DateTime ShippingDate { get; set; } // let's just have something general, like +2 days after order is confirmed
         public DateTime DeliveryDate { get; set; } // let's just have something general, like +3 days after the ShippingDate
@@ -43,5 +43,6 @@ namespace PulsePeak.Core.Entities.Orders
 
         public bool IsShipped { get; set; }
         public bool IsDelivered { get; set; }
+        public bool IsCanceled { get; set; }
     }
 }

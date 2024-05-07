@@ -23,7 +23,6 @@ namespace PulsePeak.DAL.RepositoryImplementation
         private readonly IMerchantRepository merchantRepository;
         private readonly IAddressRepository addressRepository;
         private readonly IPaymentMethodRepository paymentMethodRepository;
-        private readonly ICategoryRepository categoryRepository;
         private readonly IProductRepository productRepository;
         private readonly IOrderRepository orderRepository;
         private readonly IShoppingCartRepository shoppingCartRepository;
@@ -34,7 +33,6 @@ namespace PulsePeak.DAL.RepositoryImplementation
         public IMerchantRepository MerchantRepository => this.merchantRepository ?? this.serviceProvider.GetRequiredService<IMerchantRepository>();
         public IAddressRepository AddressRepository => this.addressRepository ?? this.serviceProvider.GetRequiredService<IAddressRepository>();
         public IPaymentMethodRepository PaymentMethodRepository => this.paymentMethodRepository ?? this.serviceProvider.GetRequiredService<IPaymentMethodRepository>();
-        public ICategoryRepository CategoryRepository => this.categoryRepository ?? this.serviceProvider.GetRequiredService<ICategoryRepository>();
         public IProductRepository ProductRepository => this.productRepository ?? this.serviceProvider.GetRequiredService<IProductRepository>();
         public IOrderRepository OrderRepository => this.orderRepository ?? this.serviceProvider.GetRequiredService<IOrderRepository>();
         public IShoppingCartRepository ShoppingCartRepository => this.shoppingCartRepository ?? this.serviceProvider.GetRequiredService<IShoppingCartRepository>();
