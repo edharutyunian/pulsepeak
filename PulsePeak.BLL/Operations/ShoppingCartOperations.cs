@@ -16,7 +16,7 @@ namespace PulsePeak.BLL.Operations
         private readonly IMapper mapper;
         private string errorMessage;
 
-        public ShoppingCartOperations(ILogger log, IRepositoryHandler repositoryHandler, IMapper mapper, string errorMessage)
+        public ShoppingCartOperations(ILogger log, IRepositoryHandler repositoryHandler, IMapper mapper)
         {
             this.log = log;
             this.repositoryHandler = repositoryHandler;

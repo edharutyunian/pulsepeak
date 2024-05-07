@@ -29,11 +29,12 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<AddressModel> AddAddress(long userId, AddressModel addressModel)
         {
-            // TODO: Validate model here and move to the API layer as well
-            if (!IsValidAddress(addressModel)) {
-                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
-            }
             try {
+                // TODO: Validate model here and move to the API layer as well
+                if (!IsValidAddress(addressModel)) {
+                    throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+                }
+
                 // check user existence
                 var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
                     ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
@@ -81,11 +82,12 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<AddressModel> EditBillingAddress(long userId, AddressModel addressModel)
         {
-            // TODO: Validate model here and move to the API layer as well
-            if (!IsValidAddress(addressModel)) {
-                throw new EditableArgumentException(this.errorMessage, new EditableArgumentException(this.errorMessage));
-            }
             try {
+                // TODO: Validate model here and move to the API layer as well
+                if (!IsValidAddress(addressModel)) {
+                    throw new EditableArgumentException(this.errorMessage, new EditableArgumentException(this.errorMessage));
+                }
+
                 var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
                     ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
 
@@ -120,11 +122,12 @@ namespace PulsePeak.BLL.Operations
 
         public async Task<AddressModel> EditShippingAddress(long userId, AddressModel addressModel)
         {
-            // TODO: Validate model here and move to the API layer as well
-            if (!IsValidAddress(addressModel)) {
-                throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
-            }
             try {
+                // TODO: Validate model here and move to the API layer as well
+                if (!IsValidAddress(addressModel)) {
+                    throw new RegistrationException(this.errorMessage, new RegistrationException(this.errorMessage));
+                }
+
                 var user = await this.repositoryHandler.UserRepository.GetSingleAsync(x => x.Id == userId)
                     ?? throw new EntityNotFoundException($"User with ID '{userId}' not found.");
 

@@ -45,8 +45,8 @@ namespace PulsePeak.Core.Entities.Users
 
         // TODO [ED]: update to IDictionarry<string, IPaymentMethod>
         // I guess it would be better to use IDictionarry<string, IPaymentMethod> with 'string' as a cardNumber to avoid any possible duplicate cards
-        public ICollection<IPaymentMethod> PaymentMethods { get; set; } // can be disregarded upon User creation | required only for checking out 
-        public IPaymentMethod PrimaryPaymentMethod => PaymentMethods.FirstOrDefault(x => x.IsPrimary == true) ?? PaymentMethods.FirstOrDefault(x => x.IsActive == true);
-        public ICollection<IOrder>? Orders { get; set; } // can be disregarded upon User creation | required only for checking out 
+        public ICollection<PaymentMehodBaseEntity> PaymentMethods { get; set; } // can be disregarded upon User creation | required only for checking out 
+        public PaymentMehodBaseEntity PrimaryPaymentMethod => PaymentMethods.FirstOrDefault(x => x.IsPrimary == true) ?? PaymentMethods.FirstOrDefault(x => x.IsActive == true);
+        public ICollection<OrderBaseEntity>? Orders { get; set; } // can be disregarded upon User creation | required only for checking out 
     }
 }
