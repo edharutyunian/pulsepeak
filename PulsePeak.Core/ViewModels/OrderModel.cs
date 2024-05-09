@@ -1,4 +1,5 @@
 ﻿using PulsePeak.Core.Enums;
+using PulsePeak.Core.ViewModels.AddressModels;
 using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 
 namespace PulsePeak.Core.ViewModels

@@ -12,9 +12,9 @@ namespace PulsePeak.DAL
     {
         public PulsePeakDbContext(DbContextOptions<PulsePeakDbContext> options) : base(options) { }
 
-        public DbSet<UserBaseEnttity> Users { get; set; }
+        //public DbSet<UserBaseEnttity> Users { get; set; }
         public DbSet<CustomerEntity> Customers { get; set; }
-        public DbSet<MerchantEntity> Merchant { get; set; }
+        public DbSet<MerchantEntity> Merchants { get; set; }
         public DbSet<AddressBaseEntity> Addresses { get; set; }
         public DbSet<PaymentMehodBaseEntity> PaymentMehods { get; set; }
         public DbSet<ProductBaseEntity> Products { get; set; }

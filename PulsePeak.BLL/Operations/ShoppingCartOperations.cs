@@ -6,6 +6,7 @@ using PulsePeak.Core.Exceptions;
 using PulsePeak.Core.Entities.ShoppingCart;
 using PulsePeak.Core.BLLOperationContracts;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
+using PulsePeak.Core.ViewModels.AddressModels;
 
 namespace PulsePeak.BLL.Operations
 {

@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using PulsePeak.Core.Utils;
-using PulsePeak.Core.ViewModels;
 using PulsePeak.Core.Exceptions;
 using PulsePeak.Core.Entities.Addresses;
+using PulsePeak.Core.ViewModels.AddressModels;
 using PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts;
 using PulsePeak.DAL.RepositoryImplementation;
 
@@ -22,18 +22,37 @@ namespace PulsePeak.DAL.Repositories
             this.errorMessage = string.Empty;
         }
 
-        public AddressModel AddAddress(long userId, AddressModel address)
+        public AddressModel AddCustomerAddress(long customerId, AddressModel addressModel)
         {
             try {
-                var newAddressEntity = mapper.Map<AddressBaseEntity>(address);
-                newAddressEntity.UserId = userId;
+                var address = this.mapper.Map<AddressBaseEntity>(addressModel);
 
-                this.DbContext.Addresses.Add(newAddressEntity);
+                address.CustomerId = customerId;
 
-                return mapper.Map<AddressModel>(newAddressEntity);
+                this.DbContext.Addresses.Add(address);
+
+                return this.mapper.Map<AddressModel>(address);
             }
             catch (Exception ex) {
-                this.errorMessage = $"An error occurred while retrieving all entities: {ex.Message}";
+                this.errorMessage = $"An error occurred while adding an entity: {ex.Message}";
+                this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
+                throw new DbContextException(errorMessage, ex);
+            }
+        }
+
+        public AddressModel AddMerchantAddress(long merchantId, AddressModel addressModel)
+        {
+            try {
+                var address = this.mapper.Map<AddressBaseEntity>(addressModel);
+
+                address.MerchantId = merchantId;
+
+                this.DbContext.Addresses.Add(address);
+
+                return this.mapper.Map<AddressModel>(address);
+            }
+            catch (Exception ex) {
+                this.errorMessage = $"An error occurred while adding an entity: {ex.Message}";
                 this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, this.errorMessage)}");
                 throw new DbContextException(errorMessage, ex);
             }
