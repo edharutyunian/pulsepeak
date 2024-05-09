@@ -7,7 +7,7 @@ namespace PulsePeak.Core.RepositoryContracts.RepositoryAbstraction
 {
     public interface IRepositoryHandler
     {
-        IUserRepository UserRepository { get; }
+        //IUserRepository UserRepository { get; }
         ICustomerRepository CustomerRepository { get; }
         IMerchantRepository MerchantRepository { get; }
         IAddressRepository AddressRepository { get; }

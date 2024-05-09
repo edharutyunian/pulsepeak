@@ -18,7 +18,7 @@ namespace PulsePeak.DAL.RepositoryImplementation
             this.DbContext = dbContext;
         }
 
-        private readonly IUserRepository userRepository;
+        //private readonly IUserRepository userRepository;
         private readonly ICustomerRepository customerRepository;
         private readonly IMerchantRepository merchantRepository;
         private readonly IAddressRepository addressRepository;
@@ -28,7 +28,7 @@ namespace PulsePeak.DAL.RepositoryImplementation
         private readonly IShoppingCartRepository shoppingCartRepository;
 
 
-        public IUserRepository UserRepository => this.userRepository ?? this.serviceProvider.GetRequiredService<IUserRepository>();
+        //public IUserRepository UserRepository => this.userRepository ?? this.serviceProvider.GetRequiredService<IUserRepository>();
         public ICustomerRepository CustomerRepository => this.customerRepository ?? this.serviceProvider.GetRequiredService<ICustomerRepository>();
         public IMerchantRepository MerchantRepository => this.merchantRepository ?? this.serviceProvider.GetRequiredService<IMerchantRepository>();
         public IAddressRepository AddressRepository => this.addressRepository ?? this.serviceProvider.GetRequiredService<IAddressRepository>();

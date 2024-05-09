@@ -5,5 +5,7 @@ namespace PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepos
 {
     public interface ICustomerRepository : IRepositoryBase<CustomerEntity>
     {
+
+        IQueryable<CustomerEntity> GetAllCustomers();
     }
 }

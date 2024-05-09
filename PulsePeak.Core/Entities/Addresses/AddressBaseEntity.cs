@@ -9,9 +9,14 @@ namespace PulsePeak.Core.Entities.Addresses
     public class AddressBaseEntity : EntityBase, IAddress
     {
         [Required]
-        [ForeignKey("User.Id")]
-        public long UserId { get; set; }
-        public required UserBaseEnttity User { get; set; }
+        [ForeignKey("Customer.Id")]
+        public long CustomerId { get; set; }
+        public required CustomerEntity Customer { get; set; }
+
+        [Required]
+        [ForeignKey("Merchant.Id")]
+        public long MerchantId { get; set; }
+        public required MerchantEntity Merchant { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(100)")]

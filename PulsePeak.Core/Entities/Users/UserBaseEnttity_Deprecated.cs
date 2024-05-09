@@ -4,8 +4,9 @@ using PulsePeak.Core.Enums.UserEnums;
 
 namespace PulsePeak.Core.Entities.Users
 {
+    // Deprecated
     [Table("Users")]
-    public class UserBaseEnttity : EntityBase, IUserAccount
+    public class UserBaseEnttity_Deprecated : EntityBase, IUserAccount
     {
         public CustomerEntity Customer { get; set; }
         public MerchantEntity Merchant { get; set; }

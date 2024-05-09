@@ -10,26 +10,31 @@ namespace PulsePeak.Core.Entities.Users
     public class MerchantEntity : EntityBase, IUserAccount
     {
         [Required]
-        [ForeignKey("User.Id")]
-        public long UserId { get; set; }
-        public required UserBaseEnttity User { get; set; }
-
-        [Required]
         [ForeignKey("BillingAddress.Id")]
         public long BillingAddressId { get; set; }
-        public IAddress BillingAddress { get; set; }
+        public AddressBaseEntity BillingAddress { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(50)")]
         public required string CompanyName { get; set; }
 
-        public string? FirstName { get; set; } // this is basically the POC or owner first name
-        public string? LastName { get; set; } // this is basically the POC or owner last name
-        public string POCName {
-            get {
-                return $"{this.FirstName} {this.LastName}";
-            }
-        }
+        [Required]
+        [Column(TypeName = "varchar(50)")]
+        public string? FirstName { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(50)")]
+        public string? LastName { get; set; }
+
+        public string FullName => $"{this.FirstName} {this.LastName}";
+
+        [Required]
+        [Column("Username", TypeName = "varchar(20)")]
+        public required string UserName { get; set; }
+
+        [Required]
+        [Column(TypeName = "varchar(20)")]
+        public required string Password { get; set; }
 
         [Required]
         [Column(TypeName = "varchar(130)")]
@@ -42,5 +47,25 @@ namespace PulsePeak.Core.Entities.Users
         [Required]
         public OrganizationType OrganizationType { get; set; } // required
         public ICollection<ProductBaseEntity> Store { get; set; } // can be disregarded upon User creation | required only for checking out 
+
+        public UserExecutionStatus ExecutionStatus { get; set; }
+        public bool IsActive {
+            get {
+                return this.ExecutionStatus == UserExecutionStatus.ACTIVE;
+            }
+            set { }
+        }
+        public bool IsBlocked {
+            get {
+                return this.ExecutionStatus == UserExecutionStatus.BLOCKED;
+            }
+            set { }
+        }
+        public bool IsDeleted {
+            get {
+                return this.ExecutionStatus == UserExecutionStatus.DELETED;
+            }
+            set { }
+        }
     }
 }

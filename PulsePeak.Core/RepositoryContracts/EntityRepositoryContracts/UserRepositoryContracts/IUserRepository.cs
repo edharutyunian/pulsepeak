@@ -3,8 +3,9 @@ using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 
 namespace PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepositoryContracts
 {
-    public interface IUserRepository : IRepositoryBase<UserBaseEnttity>
-    {
-        IQueryable<UserBaseEnttity> GetAllUsers();
-    }
+    // Deprecated
+    //public interface IUserRepository : IRepositoryBase<UserBaseEnttity>
+    //{
+    //    IQueryable<UserBaseEnttity> GetAllUsers();
+    //}
 }
