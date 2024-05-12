@@ -154,7 +154,8 @@ namespace PulsePeak.BLL.Operations
                     throw new DbContextException($"The {nameof(ProductBaseEntity)} has not been updated.");
                 }
 
-                return await this.repositoryHandler.SaveAsync() > 0;
+                var result = await this.repositoryHandler.SaveAsync() > 0;
+                return result;
             }
             catch (Exception ex) {
                 this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
