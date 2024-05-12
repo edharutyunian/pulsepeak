@@ -256,7 +256,7 @@ namespace PulsePeak.BLL.Operations
         }
 
         // TODO: Implement... Abstract this out, need to be used in the API model as well 
-        private bool IsValidProductModel(ProductModel productModel)
+        public bool IsValidProductModel(ProductModel productModel)
         {
             return false;
         }

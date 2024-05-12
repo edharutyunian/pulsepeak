@@ -14,5 +14,6 @@ namespace PulsePeak.Core.BLLOperationContracts
         Task<bool> SetMaxQuantityPerOrder(long productId, int quantity);
         Task<bool> SetPrice(long productId, decimal price);
         Task<bool> SetProductAvailabilityStatus(long productId, ProductAvailabilityStatus productAvailabilityStatus);
+        bool IsValidProductModel(ProductModel productModel);
     }
 }

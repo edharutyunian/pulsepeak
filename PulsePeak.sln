@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulsePeak.DAL", "PulsePeak.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulsePeak.WEB", "PulsePeak.WEB\PulsePeak.WEB.csproj", "{D30CB895-4340-4065-8B22-80EBBF2B5332}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulsePeak.BLL.Tests", "PulsePeak.BLL.Tests\PulsePeak.BLL.Tests.csproj", "{C0737135-44BF-4856-9E3D-29E952ACE34A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{D30CB895-4340-4065-8B22-80EBBF2B5332}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D30CB895-4340-4065-8B22-80EBBF2B5332}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D30CB895-4340-4065-8B22-80EBBF2B5332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0737135-44BF-4856-9E3D-29E952ACE34A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0737135-44BF-4856-9E3D-29E952ACE34A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0737135-44BF-4856-9E3D-29E952ACE34A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0737135-44BF-4856-9E3D-29E952ACE34A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
