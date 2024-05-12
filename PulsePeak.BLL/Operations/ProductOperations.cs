@@ -45,10 +45,10 @@ namespace PulsePeak.BLL.Operations
                 var addedProduct = this.repositoryHandler.ProductRepository.AddProduct(merchantId, productModel);
 
                 // update merchant entity
-                var isMerchantUpdated = this.repositoryHandler.MerchantRepository.Update(merchant);
-                if (!isMerchantUpdated) {
-                    throw new DbContextException($"The {nameof(merchant)} has not been updated.");
-                }
+                //var isMerchantUpdated = this.repositoryHandler.MerchantRepository.Update(merchant);
+                //if (!isMerchantUpdated) {
+                //    throw new DbContextException($"The {nameof(merchant)} has not been updated.");
+                //}
 
                 await this.repositoryHandler.SaveAsync();
 
@@ -258,7 +258,7 @@ namespace PulsePeak.BLL.Operations
         // TODO: Implement... Abstract this out, need to be used in the API model as well 
         private bool IsValidProductModel(ProductModel productModel)
         {
-            return false;
+            return true;
         }
     }
 }

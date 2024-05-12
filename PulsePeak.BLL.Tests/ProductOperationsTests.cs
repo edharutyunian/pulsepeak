@@ -5,6 +5,7 @@ using Moq;
 using PulsePeak.BLL.Operations;
 using PulsePeak.Core.BLLOperationContracts;
 using PulsePeak.Core.Entities.Users;
+using PulsePeak.Core.Exceptions;
 using PulsePeak.Core.RepositoryContracts.RepositoryAbstraction;
 using PulsePeak.Core.ViewModels;
 using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
@@ -79,7 +80,6 @@ namespace PulsePeak.BLL.Tests
 
             repositoryHandlerMock.Setup(rh => rh.ProductRepository.AddProduct(It.IsAny<long>(), It.IsAny<ProductModel>()))
                 .Returns(addedProduct);
-            productOperationsMock.Setup(po => po.IsValidProductModel(productModel)).Returns(true);
             var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
 
             // Act
@@ -87,62 +87,79 @@ namespace PulsePeak.BLL.Tests
 
             // Assert
             Assert.NotNull(result);
-
+            Assert.True(result.Id == addedProduct.Id);
+            Assert.True(result.MerchantId == addedProduct.MerchantId);
+            Assert.True(result.AvailabilityStatus == addedProduct.AvailabilityStatus);
+            Assert.True(result.AddedQuantity == addedProduct.AddedQuantity);
+            Assert.True(result.CreatedOn == addedProduct.CreatedOn);
+            Assert.True(result.Description == addedProduct.Description);
+            Assert.True(result.MaxQuantityPerOrder == addedProduct.MaxQuantityPerOrder);
+            Assert.True(result.MinQuantityPerOrder == addedProduct.MinQuantityPerOrder);
+            Assert.True(result.MinQuantityPerOrder == addedProduct.MinQuantityPerOrder);
+            Assert.True(result.Price == addedProduct.Price);
+            Assert.True(result.Title == addedProduct.Title);
+            Assert.True(result.TotalAvailableQuantity == addedProduct.TotalAvailableQuantity);
         }
 
-        //    [Fact]
-        //    public async Task AddProduct_InvalidProductModel_ThrowsRegistrationException()
-        //    {
-        //        // Arrange
-        //        var loggerMock = new Mock<ILogger>();
-        //        var repositoryHandlerMock = new Mock<IRepositoryHandler>();
-        //        var mapperMock = new Mock<IMapper>();
+        [Fact]
+        public async Task AddProduct_InvalidProductModel_ThrowsRegistrationException()
+        {
+            // Arrange
 
-        //        var productModel = new ProductModel { /* Populate with invalid data */ };
+            long merchantId = 1;
 
-        //        var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
+            var productModel = new ProductModel() //Will be finalized after Validation
+            {
+                CreatedOn = DateTime.UtcNow,
+                Title = "Top",
+                Description = "Cropped",
+                Price = 1335.54M,
+                AddedQuantity = 1,
+                TotalAvailableQuantity = 20,
+                MinQuantityPerOrder = 1,
+                MaxQuantityPerOrder = 10,
+                AvailabilityStatus = Core.Enums.ProductAvailabilityStatus.Available,
+                MerchantId = 1,
+                Merchant = null
+            };
 
-        //        // Act & Assert
-        //        await Assert.ThrowsAsync<RegistrationException>(() => productOperations.AddProduct(1 /* Provide valid merchant ID */, productModel));
-        //    }
+            var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
 
-        //    [Fact]
-        //    public async Task AddProduct_MerchantNotFound_ThrowsEntityNotFoundException()
-        //    {
-        //        // Arrange
-        //        var loggerMock = new Mock<ILogger>();
-        //        var repositoryHandlerMock = new Mock<IRepositoryHandler>();
-        //        var mapperMock = new Mock<IMapper>();
+            // Act & Assert
+            await Assert.ThrowsAsync<RegistrationException>(() => productOperations.AddProduct(merchantId,productModel));
+        }
 
-        //        var productModel = new ProductModel { MerchantId = 999 /* Provide non-existing merchant ID */, /* other properties */ };
+        [Fact]
+        public async Task AddProduct_MerchantNotFound_ThrowsEntityNotFoundException()
+        {
+            // Arrange
 
-        //        repositoryHandlerMock.Setup(rh => rh.MerchantRepository.GetSingleAsync(It.IsAny<Expression<Func<Merchant, bool>>>()))
-        //            .ReturnsAsync((Merchant)null);
 
-        //        var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
+            var productModel = new ProductModel() 
+            {
+                CreatedOn = DateTime.UtcNow,
+                Title = "Top",
+                Description = "Cropped",
+                Price = 1335.54M,
+                AddedQuantity = 1,
+                TotalAvailableQuantity = 20,
+                MinQuantityPerOrder = 1,
+                MaxQuantityPerOrder = 10,
+                AvailabilityStatus = Core.Enums.ProductAvailabilityStatus.Available,
+                MerchantId = 1,
+                Merchant = null
+            };
 
-        //        // Act & Assert
-        //        await Assert.ThrowsAsync<EntityNotFoundException>(() => productOperations.AddProduct(999 /* Provide non-existing merchant ID */, productModel));
-        //    }
 
-        //    [Fact]
-        //    public async Task AddProduct_MerchantIdMismatch_ThrowsRegistrationException()
-        //    {
-        //        // Arrange
-        //        var loggerMock = new Mock<ILogger>();
-        //        var repositoryHandlerMock = new Mock<IRepositoryHandler>();
-        //        var mapperMock = new Mock<IMapper>();
+            repositoryHandlerMock.Setup(rh => rh.MerchantRepository.GetSingleAsync(It.IsAny<Expression<Func<MerchantEntity, bool>>>()))
+                .ReturnsAsync((MerchantEntity)null);
 
-        //        var productModel = new ProductModel { MerchantId = 1 /* Provide valid merchant ID */, /* other properties */ };
+            var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
 
-        //        repositoryHandlerMock.Setup(rh => rh.MerchantRepository.GetSingleAsync(It.IsAny<Expression<Func<Merchant, bool>>>()))
-        //            .ReturnsAsync(new Merchant { Id = 2 /* Provide different merchant ID */, /* other properties */ });
+            // Act & Assert
+            await Assert.ThrowsAsync<EntityNotFoundException>(() => productOperations.AddProduct(999 /* Provide non-existing merchant ID */, productModel));
+        }
 
-        //        var productOperations = new ProductOperations(loggerMock.Object, repositoryHandlerMock.Object, mapperMock.Object);
-
-        //        // Act & Assert
-        //        await Assert.ThrowsAsync<RegistrationException>(() => productOperations.AddProduct(1 /* Provide valid merchant ID */, productModel));
-        //    }
-        //}
+        
     }
 }
