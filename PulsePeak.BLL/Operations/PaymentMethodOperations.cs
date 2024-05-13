@@ -209,12 +209,12 @@ namespace PulsePeak.BLL.Operations
         // TODO: Implement... Abstract this out, need to be used in the API model as well 
         private bool IsValidPaymentMethodModel(PaymentMethodModel model)
         {
-            if (!model.CardNumber.IsValidCreditCardNumber(out errorMessage)) {
-                return false;
-            }
-            if (!model.CardholderName.IsValidName(out errorMessage)) {
-                return false;
-            }
+            //if (!model.CardNumber.IsValidCreditCardNumber(out errorMessage)) {
+            //    return false;
+            //}
+            //if (!model.CardholderName.IsValidName(out errorMessage)) {
+            //    return false;
+            //}
             // cvv
             // expMonth
             // expYear
