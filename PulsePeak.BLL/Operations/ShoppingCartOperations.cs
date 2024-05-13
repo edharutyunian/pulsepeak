@@ -287,7 +287,7 @@ namespace PulsePeak.BLL.Operations
         // TODO: Implement... Abstract this out, need to be used in the API model as well 
         private bool IsValidShoppingCartModel(ShoppingCartModel model)
         {
-            return false;
+            return true;
         }
     }
 }
