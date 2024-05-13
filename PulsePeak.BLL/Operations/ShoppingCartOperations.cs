@@ -141,7 +141,9 @@ namespace PulsePeak.BLL.Operations
 
                 await this.repositoryHandler.SaveAsync();
 
-                return this.mapper.Map<ShoppingCartModel>(shoppingCart);
+                var result = this.mapper.Map<ShoppingCartModel>(shoppingCart);
+
+                return result;
             }
             catch (Exception ex) {
                 this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
@@ -287,7 +289,7 @@ namespace PulsePeak.BLL.Operations
         // TODO: Implement... Abstract this out, need to be used in the API model as well 
         private bool IsValidShoppingCartModel(ShoppingCartModel model)
         {
-            return false;
+            return true;
         }
     }
 }
