@@ -5,5 +5,6 @@ namespace PulsePeak.Core.RepositoryContracts.EntityRepositoryContracts.UserRepos
 {
     public interface IMerchantRepository : IRepositoryBase<MerchantEntity>
     {
+        IQueryable<MerchantEntity> GetAllMerchants();
     }
 }

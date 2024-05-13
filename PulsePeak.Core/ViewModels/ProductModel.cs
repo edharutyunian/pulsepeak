@@ -1,5 +1,5 @@
-﻿using PulsePeak.Core.Entities.Users;
-using PulsePeak.Core.Enums;
+﻿using PulsePeak.Core.Enums;
+using PulsePeak.Core.ViewModels.UserViewModels.MerchantViewModels;
 
 namespace PulsePeak.Core.ViewModels
 {
@@ -18,6 +18,6 @@ namespace PulsePeak.Core.ViewModels
         public ProductAvailabilityStatus AvailabilityStatus { get; set; } // defaults to Available upon creation
 
         public long MerchantId { get; set; }
-        public required MerchantEntity Merchant { get; set; }
+        public required MerchantModel Merchant { get; set; }
     }
 }

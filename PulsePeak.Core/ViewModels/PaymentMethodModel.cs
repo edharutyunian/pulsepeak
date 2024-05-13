@@ -1,4 +1,4 @@
-﻿using PulsePeak.Core.Entities.Users;
+﻿using PulsePeak.Core.ViewModels.UserViewModels.CustomerViewModels;
 
 namespace PulsePeak.Core.ViewModels
 {
@@ -6,7 +6,7 @@ namespace PulsePeak.Core.ViewModels
     {
         public long Id { get; set; }
         public long CustomerId { get; set; }
-        public CustomerEntity Customer { get; set; }
+        public CustomerModel Customer { get; set; }
         public required string CardNumber { get; set; }
         public required string CardholderName { get; set; }
         public required byte ExpirationMonth { get; set; }
@@ -14,5 +14,6 @@ namespace PulsePeak.Core.ViewModels
         public short CVV { get; set; }
         public string? CardName { get; set; }
         public required bool IsPrimary { get; set; }
+        public bool IsActive { get; set; }
     }
 }

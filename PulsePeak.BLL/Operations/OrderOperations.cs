@@ -141,7 +141,7 @@ namespace PulsePeak.BLL.Operations
         public async Task<bool> UpdateOrderStatus(long orderId, OrderPlacementStatus orderPlacementStatus)
         {
             try {
-                if (!Enum.IsDefined(typeof(ProductAvailabilityStatus), orderPlacementStatus)) {
+                if (!Enum.IsDefined(typeof(OrderPlacementStatus), orderPlacementStatus)) {
                     throw new ArgumentOutOfRangeException();
                 }
 
