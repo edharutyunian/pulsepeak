@@ -141,7 +141,9 @@ namespace PulsePeak.BLL.Operations
 
                 await this.repositoryHandler.SaveAsync();
 
-                return this.mapper.Map<ShoppingCartModel>(shoppingCart);
+                var result = this.mapper.Map<ShoppingCartModel>(shoppingCart);
+
+                return result;
             }
             catch (Exception ex) {
                 this.log.LogError(ex, $"Details: {ReflectionUtils.GetFormattedExceptionDetails(ex, ex.Message)}");
